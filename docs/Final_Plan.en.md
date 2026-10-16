@@ -9,6 +9,7 @@
 - Current revision: adopt time-of-day proposal `b1b86b5`; retain the daily zone p chart as the primary flag and add a pooled time-band comparison in zone detail.
 - Status: this file and the Chinese version are the sole current execution plan, consolidating prior reviews and the team's agreed selections. ResponseWatch is a working name and Python/FastAPI/React the recommended stack. Enter the actual team name and prompt number in H-01's SPEC. This change finalizes documentation only; neither the application nor datasets have been implemented.
 - Final selection: add read-only slowest incidents, minutes over target, explicit empty-data/sorting/baseline-adequacy rules and a unified deployment entry point; do not restore a live system, follow-up panel, or second severe-delay threshold as requirements.
+- Functional zones are confirmed: A/B downtown, C/D residential, E/F outer/semi-rural. Fix their underlying travel profiles and randomize incidents within them, not the zones' identities.
 
 ## 1. Prompt, User, and Product Goal
 
@@ -28,7 +29,7 @@ Following the review, prioritize verified analysis and a working public deployme
 |---|---|---|
 | P0 | Synthetic generator, three CSVs, and codebook (H-02) | Reproduce the data with a fixed seed and document fields and scenarios |
 | P0 | Plain statistical functions and tests (H-03) | Late rate, P90, daily p chart, pooled time-band comparison, and validity status pass known-answer and edge-case tests |
-| P0 | Scenario selection or CSV upload and zone summary table (H-04) | Show n, late rate, P90, and flag/insufficient-evidence status; invalid input reports row numbers and reasons |
+| P0 | Scenario selection or CSV upload and zone summary table (H-04) | Show functional zone, n, late rate, P90 and independent service-target/deterioration labels; keep insufficient evidence separate and report import row/reason |
 | P0 | p chart for each zone (H-04) | Show the frozen baseline, limits reflecting n, and marked limit violations |
 | P0 | Zone detail, slowest incidents and time bands (H-04) | Show three delay stages, five slowest completed incidents with minutes over target, and five-band comparisons; the slowest list does not depend on a zone flag |
 | P0 | Public Posit Connect deployment (H-06) | Open while logged out and verify displayed numbers against backend tests |
@@ -47,7 +48,7 @@ Remove the former P2 items—real maps, allocation simulation, prediction, LLM e
 | Field | Type/example | Purpose |
 |---|---|---|
 | `incident_id` | Unique string | Deduplication and incident lookup |
-| `zone_id` | `A`–`F` | Zone grouping |
+| `zone_id` | `A`–`F` | Fixed functional zones: A/B downtown, C/D residential, E/F outer |
 | `priority` | `high` | Priority filtering and target configuration |
 | `call_received_at` | Timestamp with offset | Call receipt |
 | `unit_notified_at` | Timestamp with offset | Unit notification; start of the primary response metric |
@@ -57,6 +58,8 @@ Remove the former P2 items—real maps, allocation simulation, prediction, LLM e
 | `unit_id` | Fictional string | Identifier of the single responding vehicle |
 
 **Time band is derived, not a new required input.** Convert `unit_notified_at` to America/New_York before assigning a band; do not group by call receipt or arrival time. Section 5.4 defines half-open intervals and the baseline split.
+
+Zone type is also derived from fixed `zone_id` metadata, without new dispatcher-entered fields. For real integration, prefer existing CAD response districts or GIS address-to-district mapping and verify local district/first-due definitions; do not assume every system uses identical boundaries. The codebook explains the local field or mapping rather than asking dispatchers to type a functional zone.
 
 Definitions:
 
@@ -92,13 +95,27 @@ Use these directly implementable initial settings, all in minutes. `clip` caps a
 |---|---|
 | Call handling and assignment wait | `clip(LogNormal(median=1.0, sigma=0.35), 0.2, 4.0)` |
 | Turnout | `clip(LogNormal(median=1.2, sigma=0.25), 0.3, 4.0)` |
-| Routine travel | `clip(LogNormal(median=6.0, sigma=0.25), 2.0, 10.0)` |
+| Routine travel | `clip(LogNormal(median=zone_median, sigma=0.25), 2.0, zone_cap)`, using the zone parameters below |
 | Ordinary tail | Independently add `Uniform(6,12)` travel minutes with 10% probability per incident |
 | Additional deterioration | During the specified zone C period, independently add another `Uniform(6,12)` travel minutes with 25% probability per incident |
 
 Use `log(median)` for the lognormal mean parameter in common libraries, rather than passing the median as the log mean. Ordinary tails and deterioration may overlap. Pre-generate injection masks and increments with a separate random stream so switching scenarios does not alter unaffected zones' original draws. These are demonstration assumptions, not empirical findings about real EMS duration distributions.
 
-### 4.1 Hourly Volume and Normal Rush Hours
+### 4.1 Fixed Functional-Zone Profiles
+
+| Zones | Fictional functional type | Routine travel median | Routine travel cap | Rush multiplier |
+|---|---|---:|---:|---:|
+| A, B | Downtown | 5 minutes | 8 minutes | 1.3 |
+| C, D | Residential | 6 minutes | 10 minutes | 1.3 |
+| E, F | Outer / semi-rural | 7.5 minutes | 12 minutes | 1.3 |
+
+Each zone retains its functional identity. A defines a small configuration table in `data/generate_data.py`, effective from baseline onward and identical across normal, hidden_tail and recovery. All zones use routine travel sigma=0.25 and lower bound 2 minutes, with other parameters as above. Keep call handling/assignment and turnout distributions shared as a modeling simplification, not a claim that location never affects them. Use 1.3 for every zone initially; do not include the suggested 1.5/1.1 alternatives in the default configuration.
+
+Zone C still receives an independent all-day 25% chance of 6–12 additional travel minutes from day 18, removed from day 24 in recovery. Do not treat E/F's inherently slower baseline profile as a planted failure. Estimate and freeze each zone's p0 and each zone/band's p0_band from realized first-14-day records, never from a citywide shared p0 or a profile's preset late probability.
+
+The proposal's approximately 10%/12%/23% figures come from different approximate simulation conditions; they are scale references, not generated results or acceptance constants. Under this plan's hourly weights, rush-window weight is 8.4/25.6, about 32.8%, rather than the approximation's roughly 25%. A records realized zone baseline n, late count, p0, P90 and band counts in the codebook. Verify n·p0 and n·(1−p0) per batch; 100 incidents per day alone does not guarantee adequacy.
+
+### 4.2 Hourly Volume and Normal Rush Hours
 
 Sample the local unit-notification hour using relative weights, then sample minutes and seconds within that hour. Keep 100 incidents per zone per day. The following are **relative weights** normalized by their sum, 25.6, not fixed hourly counts:
 
@@ -164,7 +181,9 @@ Assumptions include approximately independent incidents, a stable baseline withi
 
 ### 5.3 Service Targets and Interpretation
 
-Display deterioration relative to historical performance separately from failure to meet a configured service target. For a demonstration of chronic underperformance, optionally configure an allowed late rate **q = 10%**. Label a batch with `p_i > q` as above the demonstration service target; this label does not claim statistical significance. q is also a fictional setting. A stable but consistently poor zone should remain visible.
+Enable allowed late rate **q = 10%** in the core demonstration, displayed alongside T=12 as demo settings. For a completed batch/selected monitoring window, `p > q` means Above demonstration service target. Separately show daily `p_i > UCL_i` as Deteriorated from own baseline, with each label's date range. q is not a significance threshold or clinical standard; insufficient evidence must not masquerade as no deterioration.
+
+The intended story is E/F remaining chronically slower under their travel-distance settings, potentially above q without sustained deterioration from their own history, while zone C deteriorates from its own baseline during the fault. Verify actual rates and flagged batches after generation; stable zones can have chance violations. Chronic target failure suggests investigating coverage or target suitability, not a proven vehicle shortage, and historical stability does not mean acceptable service.
 
 Component charts identify the delayed stage. Longer travel times may suggest checking coverage, routes, or traffic evidence; without additional data they do not establish congestion, staff fault, or a vehicle shortage. P90 is descriptive and must be marked unstable for small samples. Cp/Cpk and risk prediction are not part of the MVP.
 
@@ -219,6 +238,8 @@ A risk-adjusted daily p chart is a statistical extension to evaluate only after 
 | Slowest list and excess minutes | T=12; incidents F=8, B=20, A=20, D=12, C=5, E=25 minutes | First five E, A, B, D, F; excess minutes 13, 8, 8, 0, 0; still visible when the zone flag is false |
 | Empty data and P90 warning | n=0, n=1, n=19, n=20; fewer than five incidents | Empty metrics null and list []; defined descriptive values otherwise; warn for n<20 without zero imputation |
 | Baseline adequacy | 13 completed baseline days, or fewer than five late/non-late baseline incidents | `baseline_insufficient`, without a Normal conclusion; separately check band baseline counts |
+| Zone profiles and paired scenarios | A/B=(5,8,1.3), C/D=(6,10,1.3), E/F=(7.5,12,1.3) | Fixed identities/settings, identical baseline across scenarios, injection only in C on specified dates; verify realized zone/band adequacy |
+| Independent labels (constructed unit fixture, not simulation results) | q=0.10; E: p0=0.20, n=100, d=25; C: p0=0.10, n=100, d=20 | E has UCL≈0.32 and exceeds q but not its UCL; C exceeds both q and its UCL≈0.19; retain independent zone baselines |
 | Unequal baseline sizes | Batches with 1/10 and 18/90 late responses | Weighted p0≈19/100=0.19, not the unweighted average 0.15 |
 | Timing components | Call 12:00, notification 12:02, departure 12:04, arrival 12:12, same timezone | Assignment wait 2, turnout 2, travel 8, primary response 10, total wait 12 minutes |
 | Degenerate/invalid inputs | Empty data, n=1, constants, missing values, duplicate IDs, reversed timestamps, invalid timezone, p0=0 or 1 | Explicit status or validation error; historical imports reject missing timestamps without silent zero imputation or misleading infinities |
@@ -245,7 +266,7 @@ Accept the statistical layer only after known-answer, boundary, degenerate-input
 - Recommended stack: plain Python statistics + FastAPI + React/Vite. Preserve `testme`, `manifestme`, `deployme`, and README conventions. Start with `demos/fastapi/`, place the React frontend in `app/frontend/`, and confirm choices before implementation.
 - **One production deployment entry point:** build React static assets and serve the page, assets, and four core APIs from the same FastAPI application, without requiring two development servers. SPA fallback must not hide API validation errors or 404s. Deployment smoke checks cover the homepage, assets and the expected `/health` response type.
 - **Only four core endpoints:** `GET /health`, `POST /datasets/load`, `GET /zones/summary`, and `GET /zones/{id}/analysis`. They cover scenario selection/upload, zone summaries, daily control charts, timing stages, and the detail response's `time_of_day` field. These are planned contracts, not implemented endpoints.
-- Return units, stratification, sample sizes, baseline dates, T, control-chart availability, and excluded counts. The band structure also includes baseline_n, p0_band, n_band, comparison dates, and evidence status. Return optional q only when enabled. Validate and compute server-side; do not duplicate statistics in the frontend.
+- Return units, stratification, sample sizes, baseline dates, T, q=10%, zone type, independent `above_service_target` / `deterioration_flag` states and excluded counts. Bands also include baseline_n, p0_band, n_band, comparison dates and evidence status. Preserve unavailable statistical states rather than returning false. Include metadata in existing responses, without new endpoints; compute statistics server-side.
 - Existing summary and zone-detail responses each add `slowest_incidents`. The backend owns ordering, R and excess-minute calculations; empty lists and nulls follow section 5.1. Keep the same four core endpoints.
 - Request analysis after loading data; no polling, live state machine, or incident editing is required. A loaded dataset may live in single-process memory, with a clear reload-after-restart notice. Do not add a database for this submission.
 - After the optional gate passes, consider `POST /incidents` first, limited to adding one completed incident and refreshing summaries. `PATCH /incidents/{id}`, incident-list endpoints, polling, a virtual clock, and timers remain lower-priority replay options and cannot become dependencies of the core API.
@@ -256,7 +277,7 @@ Accept the statistical layer only after known-answer, boundary, degenerate-input
 
 | Member | Responsibility and paths | Required deliverable | Dependencies and handoff |
 |---|---|---|---|
-| A: data lead | H-02; `data/`, then support H-05 | Three scenarios at 100 incidents/zone/day, hourly weights/normal rush, CSVs, codebook, scenario truth | Agree definitions and approximation checks with B, independently verify known answers, provide data to C/D |
+| A: data lead | H-02; `data/`, then support H-05 | Fixed zone profiles, three scenarios at 100 incidents/zone/day, hourly/rush patterns, CSVs, realized zone baselines and codebook | Fix profiles before H-02, verify zone/band adequacy with B, cross-check calculations and provide data to C/D |
 | B: statistics lead | H-03; `app/qc.py`, statistical dependencies, `tests/` | Verify daily statistics first, then `late_rate_by_band`, validity, tolerance, empty-group and band-boundary tests | Cross-check with A; hand off a stable JSON structure after tests pass |
 | C: frontend lead | H-04 frontend sub-scope; `app/frontend/` | Scenario selection/upload, summary table, read-only five slowest incidents, daily charts, stage detail and five-band bars | Start with contracts and integrate after statistical validation; live lists, maps and follow-up are not required |
 | D: backend/release lead | H-04 backend sub-scope and H-06; `app/` excluding B/C paths, plus deployment files | Four endpoints, slowest/band structures, unified React/FastAPI deployment and submission materials | No non-core write endpoints or state machine; deploy early and verify shared UI/backend null and ordering behavior |
@@ -288,7 +309,7 @@ Start H-06 as soon as the first core complete flow works and check H-08 reposito
 - Known-answer/boundary/degenerate tests, core API smoke checks, and UI/backend numeric agreement.
 - Public repository, Posit Connect demo, README, `demo/README.md`, and submission materials.
 
-The default demo requires no optional functionality: **show the equal-mean/different-tail fixture → inspect slowest incidents and minutes over target → switch to hidden_tail → find zone C's higher late rate/P90 → inspect p-chart violations → drill into travel time and pooled bands → switch to recovery → show reproduction commands and tests.** Explain that slowest incidents remain visible without a red zone flag. Distinguish simulated improvement, association and established causes; use the daily chart for recovery rather than expecting full-period pooled signals to immediately disappear.
+The default demo requires no optional functionality: **introduce downtown/residential/outer profiles → show the limits of averages and slowest incidents → contrast E/F's chronic target failure without sustained own-baseline deterioration → switch to hidden_tail for C's deterioration → inspect travel stages and pooled bands → switch to recovery → show reproduction and tests.** Use realized results to explain independent labels, without promising zero false alarms; keep slowest incidents independently visible, use daily charts for recovery and avoid causal claims.
 
 If a completed-incident form or another optional feature passed its gate and is stable, demonstrate it separately in a short segment. The main demonstration must still work with optional features disabled. State unimplemented live capabilities clearly, and do not describe CSV scenario switching as real-time replay.
 
@@ -326,5 +347,7 @@ Current proposal: [time-of-day analysis](time-of-day-proposal.md), commit `b1b86
 Final selections also draw from Yurui Xu's proposal `4832c3d`: adopt read-only slowest incidents, excess minutes, explicit empty-data/sorting/adequacy rules and unified deployment. Do not promote live editing, replay, acknowledgment or follow-up to P0, introduce a second severe threshold, or alter strict statistical flags. Retain this version's five-band analysis and established scope.
 
 **Version convention:** only this file and `Final_Plan.md` are the active execution plan. `plan.zh-CN.md`, `plan.en.md`, `ResponseWatch-plan.zh-CN.md` and `ResponseWatch-plan.en.md` are historical references whose older scope must not override this version. `plan.md` links here.
+
+Adopted [functional-zone proposal](zone-profiles-proposal.md), commit `6c9aa6f`: fix three zone profiles, enable independent service-target/own-baseline labels, and add realized zone baseline reporting and checks. Preserve six core items, four endpoints, roles and deadlines. This change updates plans only; it does not implement the generator or reproduce the proposal's simulated rates.
 
 Next: complete H-01's SPEC with the actual team name, prompt number and confirmed scope, then have A/B advance H-02/H-03 in parallel. This change finalizes planning only; implementation tasks remain separate.

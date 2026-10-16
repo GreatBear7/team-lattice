@@ -14,6 +14,9 @@ Use the two Final_Plan documents above for implementation. Earlier plan files ar
 - Demo baseline: 14 nonempty completed daily batches per zone/priority and at least five late and five non-late baseline records; otherwise `baseline_insufficient`. Band baselines also need at least five of each outcome.
 - Keep R=unit notification to scene, T=12 minutes, strict R>T and p>UCL; no S=24 severity threshold. Numeric tests use `pytest.approx`; no tolerance in alert logic.
 - Six zones, 28 days, 14 frozen baseline days, seed 5300, 100 incidents/zone/day, approximately 16,800 rows per CSV.
+- Fixed functional profiles: A/B downtown (travel median 5, cap 8); C/D residential (6, 10); E/F outer/semi-rural (7.5, 12), all minutes, sigma=0.25 and rush multiplier 1.3. Derive type from zone_id, without new required inputs.
+- Enable q=10%: display `above_service_target` separately from own-baseline `deterioration_flag`. Estimate frozen p0/p0_band per zone from realized data; never use a citywide shared baseline or promise stable zones have no false alarms.
+- Proposal rates 10%/12%/23% are approximate references, not measured outcomes. Our hourly weights imply 8.4/25.6≈32.8% rush calls; A records actual zone rates and checks adequacy. C's fault injection is unchanged.
 - Normal hourly volume and rush multipliers apply in the baseline too; time bands derive from local unit-notification time, pooled across days. Document exploratory-comparison limitations.
 - Serve built React assets and four core APIs from one FastAPI production entry point. Preserve API error responses.
 - Live replay/editing/timers, follow-up and maps remain optional after the deployed-core gate, reached no later than 2026-10-17 02:00 ET. Do not let them block deployment.
@@ -24,6 +27,7 @@ Use the two Final_Plan documents above for implementation. Earlier plan files ar
 
 - [First review](plan-review.md), commit `609bed9`.
 - [Time-of-day proposal](time-of-day-proposal.md), commit `b1b86b5`.
+- [Functional-zone profiles](zone-profiles-proposal.md), commit `6c9aa6f`; adopted in Final_Plan.
 - [Historical Chinese plan](plan.zh-CN.md) / [historical English plan](plan.en.md).
 - [Alternative Chinese proposal](ResponseWatch-plan.zh-CN.md) / [alternative English proposal](ResponseWatch-plan.en.md), commit `4832c3d`.
 

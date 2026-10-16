@@ -161,7 +161,7 @@ tasks:
     points: "Planning support for H-01 through H-08"
     status: done
     owner: "Codex, requested by team"
-    started_at: "2026-10-16 16:59"
+    started_at: "2026-10-16 17:11"
     owns: ["docs/Final_Plan.md", "docs/Final_Plan.en.md", "docs/plan.md", "docs/plan.zh-CN.md", "docs/plan.en.md", "docs/ResponseWatch-plan.zh-CN.md", "docs/ResponseWatch-plan.en.md"]
     notes: >
       The team explicitly requested Chinese and English Markdown plans and
@@ -174,6 +174,8 @@ tasks:
       Reopened to publish the agreed canonical Final_Plan pair, add
       read-only slowest incidents and clear acceptance rules, and label
       prior alternatives as historical references.
+      Reopened to add the explicitly approved functional-zone profiles
+      from zone-profiles-proposal.md to both final plans and the index.
     definition_of_done: >
       python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/Final_Plan.md', 'docs/Final_Plan.en.md')); print('PASS: canonical final plans and index exist')" && git diff --check
-    result: "Canonical bilingual Final_Plan published; agreed slowest-incident, excess-minute, empty-data/baseline and deployment details added; prior plans labeled historical; link, numeric, bilingual, YAML and diff checks pass."
+    result: "Functional-zone profiles and independent service-target/deterioration labels added to both Final_Plan files and index; realized-rate caveats, bilingual, numeric, link, YAML and diff checks pass."
