@@ -4,13 +4,16 @@ Run from the repo root:
 
     python data/generate_data.py
 
-Writes data/normal.csv, data/hidden_tail.csv, data/recovery.csv and
-data/scenario_truth.json. Every parameter below follows docs/Final_Plan.en.md
-section 4. All incidents, zones, dispatchers and units are fictional.
+Writes data/normal.csv, data/recovery.csv, data/morning_tail.csv and
+data/scenario_truth.json. Parameters follow docs/Final_Plan.en.md section 4;
+the scenario set (normal + recovery + morning_tail) was agreed by the team on
+2026-10-16 (ideas/reply-kaushik.md on branch temp-ideas). All incidents, zones,
+dispatchers and units are fictional.
 
-The three scenarios share every random draw. They differ only by the zone C
-travel increment, which comes from its own random stream, so the baseline
-(days 1-14) and all other zones are byte-identical across the three files.
+The three scenarios share every random draw. They differ only by planted extra
+travel minutes, which come from their own random stream, so the baseline
+(days 1-14) is byte-identical across the three files, and so is every zone a
+scenario does not touch.
 """
 
 import json
@@ -52,12 +55,20 @@ HOUR_WEIGHTS = np.array(
 RUSH_HOURS = {7, 8, 16, 17, 18}  # [07:00, 09:00) and [16:00, 19:00)
 
 ORDINARY_TAIL_P = 0.10
-INJECT_P = 0.25
 INCREMENT_RANGE = (6.0, 12.0)
 
-INJECT_ZONE = "C"
-INJECT_START_DAY = 18  # 1-based day number: 2026-10-01
-RECOVERY_DAY = 24      # 1-based day number: 2026-10-07
+# Planted problems. Days are 1-based (day 18 = 2026-10-01); hours are local notification hours.
+ALL_HOURS = tuple(range(24))
+MORNING_RUSH_HOURS = (6, 7, 8, 9)  # the morning_rush comparison band [06:00, 10:00)
+SCENARIOS = {
+    "normal": [],
+    # Zone C, all day, many calls a bit slower; fixed from day 24 (2026-10-07).
+    "recovery": [dict(zone="C", first_day=18, last_day=23, hours=ALL_HOURS,
+                      prob=0.25, extra_travel_min=(6.0, 12.0))],
+    # Zone D, morning rush only, a few calls much slower ("rare but severe").
+    "morning_tail": [dict(zone="D", first_day=18, last_day=28, hours=MORNING_RUSH_HOURS,
+                          prob=0.25, extra_travel_min=(15.0, 25.0))],
+}
 
 N_DISPATCHERS = 8
 UNITS_PER_ZONE = 4
@@ -76,9 +87,8 @@ def day_date(day_number):
 
 def base_draws():
     """One row per incident with every random draw that all scenarios share."""
-    base_ss, inject_ss = np.random.SeedSequence(SEED).spawn(2)
+    base_ss, _ = np.random.SeedSequence(SEED).spawn(2)
     rng = np.random.default_rng(base_ss)
-    irng = np.random.default_rng(inject_ss)
 
     zone_ids = list(ZONES)
     n = len(zone_ids) * N_DAYS * PER_ZONE_PER_DAY
@@ -101,21 +111,33 @@ def base_draws():
     dispatcher = rng.integers(1, N_DISPATCHERS + 1, size=n)
     unit = rng.integers(1, UNITS_PER_ZONE + 1, size=n)
 
-    # Injection draws come from their own stream for every row, used or not.
-    inject = np.where(irng.random(n) < INJECT_P, irng.uniform(*INCREMENT_RANGE, n), 0.0)
-
     return pd.DataFrame({
         "zone_id": zone, "day": day, "hour": hour, "second_in_hour": second_in_hour,
         "handling": handling, "turnout": turnout, "travel": travel + tail,
-        "dispatcher": dispatcher, "unit": unit, "inject": inject,
+        "dispatcher": dispatcher, "unit": unit,
     })
 
 
-def build_scenario(draws, inject_days):
-    """Turn shared draws into a scenario CSV; zone C gets `inject` minutes on `inject_days`."""
+def planted_minutes(n, prob, extra_travel_min):
+    """Extra minutes for every row from the dedicated injection stream: U < prob, then Uniform(lo, hi).
+
+    The stream restarts for each planted problem, so each scenario is reproducible on its own and
+    unaffected rows never change. Same construction as ideas/sim.py on branch temp-ideas.
+    """
+    _, inject_ss = np.random.SeedSequence(SEED).spawn(2)
+    irng = np.random.default_rng(inject_ss)
+    hit = irng.random(n) < prob
+    return np.where(hit, irng.uniform(*extra_travel_min, n), 0.0)
+
+
+def build_scenario(draws, problems=()):
+    """Turn shared draws into a scenario CSV, adding each planted problem's extra travel minutes."""
     d = draws
-    hit = (d["zone_id"] == INJECT_ZONE) & d["day"].isin(inject_days)
-    travel = d["travel"] + np.where(hit, d["inject"], 0.0)
+    travel = d["travel"].copy()
+    for pr in problems:
+        rows = ((d["zone_id"] == pr["zone"]) & d["day"].between(pr["first_day"], pr["last_day"])
+                & d["hour"].isin(pr["hours"])).to_numpy()
+        travel += np.where(rows, planted_minutes(len(d), pr["prob"], pr["extra_travel_min"]), 0.0)
 
     rows = []
     for i in range(len(d)):
@@ -148,16 +170,17 @@ def build_scenario(draws, inject_days):
     return df.reset_index(drop=True)
 
 
+def describe_problem(pr):
+    hours = "all day" if tuple(pr["hours"]) == ALL_HOURS else \
+        f"local notification hours {pr['hours'][0]:02d}:00-{pr['hours'][-1] + 1:02d}:00"
+    return {"zone": pr["zone"], "from": str(day_date(pr["first_day"])), "to": str(day_date(pr["last_day"])),
+            "hours": hours, "probability": pr["prob"], "extra_travel_min": list(pr["extra_travel_min"])}
+
+
 def main():
     draws = base_draws()
-    all_days = range(1, N_DAYS + 1)
-    scenarios = {
-        "normal": [],
-        "hidden_tail": [d for d in all_days if d >= INJECT_START_DAY],
-        "recovery": [d for d in all_days if INJECT_START_DAY <= d < RECOVERY_DAY],
-    }
-    for name, inject_days in scenarios.items():
-        df = build_scenario(draws, inject_days)
+    for name, problems in SCENARIOS.items():
+        df = build_scenario(draws, problems)
         df.to_csv(OUT_DIR / f"{name}.csv", index=False)
         print(f"wrote data/{name}.csv  ({len(df)} rows)")
 
@@ -172,16 +195,9 @@ def main():
         "incidents_per_zone_per_day": PER_ZONE_PER_DAY,
         "zone_profiles": {z: {"type": t, "travel_median_min": m, "travel_cap_min": c, "rush_multiplier": r}
                           for z, (t, m, c, r) in ZONES.items()},
-        "scenarios": {
-            "normal": {"affected_zones": [], "injection": None},
-            "hidden_tail": {"affected_zones": [INJECT_ZONE],
-                            "injection": {"from": str(day_date(INJECT_START_DAY)), "to": str(day_date(N_DAYS)),
-                                          "probability": INJECT_P, "extra_travel_min": list(INCREMENT_RANGE)}},
-            "recovery": {"affected_zones": [INJECT_ZONE],
-                         "injection": {"from": str(day_date(INJECT_START_DAY)),
-                                       "to": str(day_date(RECOVERY_DAY - 1)),
-                                       "probability": INJECT_P, "extra_travel_min": list(INCREMENT_RANGE)}},
-        },
+        "scenarios": {name: {"affected_zones": [pr["zone"] for pr in problems],
+                             "planted": [describe_problem(pr) for pr in problems]}
+                      for name, problems in SCENARIOS.items()},
     }
     (OUT_DIR / "scenario_truth.json").write_text(json.dumps(truth, indent=2) + "\n")
     print("wrote data/scenario_truth.json")

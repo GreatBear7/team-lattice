@@ -57,35 +57,43 @@
   "scenarios": {
     "normal": {
       "affected_zones": [],
-      "injection": null
-    },
-    "hidden_tail": {
-      "affected_zones": [
-        "C"
-      ],
-      "injection": {
-        "from": "2026-10-01",
-        "to": "2026-10-11",
-        "probability": 0.25,
-        "extra_travel_min": [
-          6.0,
-          12.0
-        ]
-      }
+      "planted": []
     },
     "recovery": {
       "affected_zones": [
         "C"
       ],
-      "injection": {
-        "from": "2026-10-01",
-        "to": "2026-10-06",
-        "probability": 0.25,
-        "extra_travel_min": [
-          6.0,
-          12.0
-        ]
-      }
+      "planted": [
+        {
+          "zone": "C",
+          "from": "2026-10-01",
+          "to": "2026-10-06",
+          "hours": "all day",
+          "probability": 0.25,
+          "extra_travel_min": [
+            6.0,
+            12.0
+          ]
+        }
+      ]
+    },
+    "morning_tail": {
+      "affected_zones": [
+        "D"
+      ],
+      "planted": [
+        {
+          "zone": "D",
+          "from": "2026-10-01",
+          "to": "2026-10-11",
+          "hours": "local notification hours 06:00-10:00",
+          "probability": 0.25,
+          "extra_travel_min": [
+            15.0,
+            25.0
+          ]
+        }
+      ]
     }
   }
 }
