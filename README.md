@@ -1,2 +1,2 @@
 # team-lattice
-Six Sigma Hackathon
+This is the repo for the Six Sigma Hackathon. Good luck to everyone!
