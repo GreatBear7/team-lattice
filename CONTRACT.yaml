@@ -161,8 +161,8 @@ tasks:
     points: "Planning support for H-01 through H-08"
     status: done
     owner: "Codex, requested by team"
-    started_at: "2026-10-16 16:47"
-    owns: ["docs/plan.md", "docs/plan.zh-CN.md", "docs/plan.en.md"]
+    started_at: "2026-10-16 16:59"
+    owns: ["docs/Final_Plan.md", "docs/Final_Plan.en.md", "docs/plan.md", "docs/plan.zh-CN.md", "docs/plan.en.md", "docs/ResponseWatch-plan.zh-CN.md", "docs/ResponseWatch-plan.en.md"]
     notes: >
       The team explicitly requested Chinese and English Markdown plans and
       creation and publication of the dev branch. This task covers planning
@@ -171,6 +171,9 @@ tasks:
       from commit 609bed9 into both language plans and their index.
       Reopened again to incorporate docs/time-of-day-proposal.md from
       commit b1b86b5, as explicitly requested by the user.
+      Reopened to publish the agreed canonical Final_Plan pair, add
+      read-only slowest incidents and clear acceptance rules, and label
+      prior alternatives as historical references.
     definition_of_done: >
-      python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/plan.zh-CN.md', 'docs/plan.en.md')); print('PASS: three plan documents exist')" && git diff --check
-    result: "Proposal b1b86b5 incorporated: pooled time-band statistics, normal hourly/rush patterns, band tests and UI/API details; bilingual, numeric, link, YAML and diff checks pass."
+      python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/Final_Plan.md', 'docs/Final_Plan.en.md')); print('PASS: canonical final plans and index exist')" && git diff --check
+    result: "Canonical bilingual Final_Plan published; agreed slowest-incident, excess-minute, empty-data/baseline and deployment details added; prior plans labeled historical; link, numeric, bilingual, YAML and diff checks pass."

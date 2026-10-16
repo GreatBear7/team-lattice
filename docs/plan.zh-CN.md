@@ -1,5 +1,7 @@
 # ResponseWatch：四人团队实施计划
 
+> **历史版本：** 当前唯一执行计划为 [Final_Plan 中文版](Final_Plan.md) / [English](Final_Plan.en.md)。本文件保留作历史参考，不用于确定当前必做范围。
+
 [English version](plan.en.md) · [计划索引](plan.md) · [组员评审](plan-review.md) · [时段分析提案](time-of-day-proposal.md)
 
 - 编写日期：2026-10-16；所有安排使用美国纽约时间（ET）。

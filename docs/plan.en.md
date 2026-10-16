@@ -1,5 +1,7 @@
 # ResponseWatch: Four-Person Implementation Plan
 
+> **Superseded:** use [Final_Plan English](Final_Plan.en.md) / [中文版](Final_Plan.md) as the sole current execution plan. This file is historical reference, not the active scope.
+
 [中文版](plan.zh-CN.md) · [Plan index](plan.md) · [Team review](plan-review.md) · [Time-of-day proposal](time-of-day-proposal.md)
 
 - Prepared: 2026-10-16. All scheduling uses New York time (ET).

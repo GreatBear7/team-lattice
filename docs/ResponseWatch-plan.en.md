@@ -1,4 +1,6 @@
-# ResponseWatch Final Implementation Plan
+# ResponseWatch Earlier Proposal (Historical Reference)
+
+> **Historical proposal:** agreed selections are consolidated in [Final_Plan](Final_Plan.en.md). This file's former live/follow-up P0 scope is not the active execution plan.
 
 [中文版](ResponseWatch-plan.zh-CN.md)
 

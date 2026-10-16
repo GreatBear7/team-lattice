@@ -1,4 +1,6 @@
-# ResponseWatch 最终实施计划
+# ResponseWatch 早期方案（历史参考）
+
+> **历史参考方案：** 已按团队确认的取舍整合到 [Final_Plan](Final_Plan.md)。本文件原有实时与跟进 P0 不代表当前执行范围。
 
 [English version](ResponseWatch-plan.en.md)
 
