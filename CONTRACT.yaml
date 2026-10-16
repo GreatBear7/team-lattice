@@ -155,3 +155,18 @@ tasks:
       testme script and the H-03 tests both pass with no extra steps; git
       grep -i "api_key" finds no real key; the Devpost entry links the repo.
     result: ""
+
+  - id: H-09
+    title: Bilingual project and synthetic-data plan
+    points: "Planning support for H-01 through H-08"
+    status: done
+    owner: "Codex, requested by team"
+    started_at: "2026-10-16 15:58"
+    owns: ["docs/plan.md", "docs/plan.zh-CN.md", "docs/plan.en.md"]
+    notes: >
+      The team explicitly requested Chinese and English Markdown plans and
+      creation and publication of the dev branch. This task covers planning
+      documents only; H-01 through H-08 remain unimplemented.
+    definition_of_done: >
+      python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/plan.zh-CN.md', 'docs/plan.en.md')); print('PASS: three plan documents exist')" && git diff --check
+    result: "Bilingual plans and index added; shared parameters, statistical examples, links, YAML, and diff checks pass."
