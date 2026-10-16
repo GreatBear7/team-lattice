@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What-if Simulator</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #fcfcfb; --panel: #ffffff; --ink: #0b0b0b; --ink2: #52514e; --line: #e6e5e1;
+    --accent: #2a78d6; --flag: #d03b3b; --soft: #f0efec;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 24px 6px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; color: var(--ink2); }
+  .badge { display: inline-block; background: var(--soft); color: var(--ink2); border-radius: 4px;
+           padding: 1px 8px; font-size: 12px; margin-left: 6px; vertical-align: middle; }
+  main { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 14px 24px 40px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 14px 16px 40px; } }
+  form, section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  form { align-self: start; }
+  fieldset { border: 0; padding: 0; margin: 0 0 14px; }
+  legend { font-weight: 600; margin-bottom: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips label { border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; cursor: pointer; user-select: none; }
+  .chips input { margin-right: 4px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row label { color: var(--ink2); }
+  input[type=number], select { width: 100%; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px;
+                               background: var(--panel); color: var(--ink); font: inherit; }
+  input[type=range] { width: 100%; }
+  .hint { color: var(--ink2); font-size: 12px; margin-top: 4px; }
+  button { font: inherit; border-radius: 6px; padding: 7px 12px; cursor: pointer; border: 1px solid var(--line);
+           background: var(--panel); color: var(--ink); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; width: 100%; font-weight: 600; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .presets button { font-size: 12px; padding: 4px 8px; }
+  #status { margin: 0 0 12px; color: var(--ink2); min-height: 1.4em; }
+  #status.err { color: var(--flag); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--ink2); font-weight: 600; }
+  td.num { font-variant-numeric: tabular-nums; }
+  tr.inj td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .yes { color: var(--flag); font-weight: 600; }
+  .muted { color: var(--ink2); }
+  img { max-width: 100%; display: block; margin-top: 10px; border-radius: 6px; }
+  .results { display: grid; gap: 16px; min-width: 0; }
+  .wrap { overflow-x: auto; }
+  h2 { font-size: 15px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>What-if simulator <span class="badge">synthetic · local prototype</span></h1>
+  <p>Add extra travel time to chosen zones, times of day and days, then see whether the tool's statistics catch it.
+     The baseline (Sep 14–27) is never changed; with no change you get exactly normal.csv.</p>
+</header>
+<main>
+  <form id="f">
+    <div class="presets">
+      <button type="button" data-preset="hidden">hidden_tail</button>
+      <button type="button" data-preset="recovery">recovery</button>
+      <button type="button" data-preset="small">small change</button>
+      <button type="button" data-preset="evening">evening rush only</button>
+      <button type="button" data-preset="none">no change</button>
+    </div>
+    <fieldset><legend>Zones that get worse</legend>
+      <div class="chips" id="zones"></div>
+    </fieldset>
+    <fieldset><legend>Time of day</legend>
+      <div class="chips" id="bands"></div>
+    </fieldset>
+    <fieldset><legend>Days (monitoring period)</legend>
+      <div class="row"><label for="start">from</label><select id="start"></select></div>
+      <div class="row" style="margin-top:6px"><label for="end">to&nbsp;&nbsp;&nbsp;</label><select id="end"></select></div>
+    </fieldset>
+    <fieldset><legend>Share of those calls affected: <span id="probv"></span></legend>
+      <input type="range" id="prob" min="0" max="100" step="5" value="25">
+    </fieldset>
+    <fieldset><legend>Extra travel minutes (random in range)</legend>
+      <div class="row"><input type="number" id="lo" min="0" max="60" step="0.5" value="6">
+        <span class="muted">to</span><input type="number" id="hi" min="0" max="60" step="0.5" value="12"></div>
+      <div class="hint">A call is late when response &gt; 12 min. Seed 5300 = Kaushik's data.</div>
+    </fieldset>
+    <fieldset><legend>Seed</legend><input type="number" id="seed" value="5300"></fieldset>
+    <button class="primary" type="submit">Run simulation</button>
+  </form>
+
+  <div class="results">
+    <p id="status">Pick a scenario and press Run (takes ~5–10 s).</p>
+    <section class="card" id="sumcard" hidden>
+      <h2>What the tool found</h2>
+      <p id="headline" class="muted"></p>
+      <div class="wrap"><table id="tbl"></table></div>
+      <p class="hint"><a href="/last.csv" download="simulated.csv">Download this simulated CSV</a></p>
+    </section>
+    <section class="card" id="pcard" hidden><h2>Daily p charts (all zones)</h2><img id="pimg" alt="Daily p charts for zones A-F"></section>
+    <section class="card" id="bcard" hidden><h2>Time-of-day comparison (injected zones)</h2><img id="bimg" alt="Time band comparison"></section>
+  </div>
+</main>
+<script>
+const ZONES = {A: "downtown", B: "downtown", C: "residential", D: "residential", E: "outer", F: "outer"};
+const BANDS = [["night","Night 00–06"],["morning_rush","Morning rush 06–10"],["midday","Midday 10–16"],
+               ["evening_rush","Evening rush 16–20"],["late_evening","Late evening 20–24"]];
+const $ = id => document.getElementById(id);
+const chip = (name, val, text) =>
+  `<label><input type="checkbox" name="${name}" value="${val}">${text}</label>`;
+$("zones").innerHTML = Object.entries(ZONES).map(([z,t]) => chip("zone", z, `${z} <span class="muted">${t}</span>`)).join("");
+$("bands").innerHTML = BANDS.map(([k,t]) => chip("band", k, t)).join("");
+for (let d = 15; d <= 28; d++) {
+  const dt = new Date(2026, 8, 13 + d);
+  const label = `day ${d} · ${dt.toLocaleDateString("en-US", {month: "short", day: "numeric"})}`;
+  $("start").add(new Option(label, d)); $("end").add(new Option(label, d));
+}
+const setChecks = (name, vals) => document.querySelectorAll(`input[name=${name}]`)
+  .forEach(i => i.checked = vals.includes(i.value));
+const allBands = BANDS.map(b => b[0]);
+const PRESETS = {
+  hidden:   {zones: ["C"], bands: allBands, start: 18, end: 28, prob: 0.25, lo: 6, hi: 12},
+  recovery: {zones: ["C"], bands: allBands, start: 18, end: 23, prob: 0.25, lo: 6, hi: 12},
+  small:    {zones: ["D"], bands: allBands, start: 18, end: 28, prob: 0.10, lo: 1, hi: 3},
+  evening:  {zones: ["E"], bands: ["evening_rush"], start: 20, end: 28, prob: 0.5, lo: 6, hi: 12},
+  none:     {zones: [], bands: allBands, start: 15, end: 28, prob: 0.25, lo: 6, hi: 12},
+};
+function applyPreset(p) {
+  setChecks("zone", p.zones); setChecks("band", p.bands);
+  $("start").value = p.start; $("end").value = p.end; $("prob").value = Math.round(p.prob * 100);
+  $("lo").value = p.lo; $("hi").value = p.hi; $("seed").value = 5300;
+  $("probv").textContent = $("prob").value + "%";
+}
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => applyPreset(PRESETS[b.dataset.preset]));
+$("prob").oninput = () => $("probv").textContent = $("prob").value + "%";
+applyPreset(PRESETS.hidden);
+
+const pct = x => x == null ? "—" : (x*100).toFixed(1) + "%";
+const yesno = (b, yes, no) => b == null ? '<span class="muted">n/a</span>' : b ? `<span class="yes">${yes}</span>` : `<span class="muted">${no}</span>`;
+$("f").onsubmit = async e => {
+  e.preventDefault();
+  const checked = n => [...document.querySelectorAll(`input[name=${n}]:checked`)].map(i => i.value);
+  const body = {zones: checked("zone"), bands: checked("band"), start_day: +$("start").value, end_day: +$("end").value,
+                prob: +$("prob").value / 100, lo: +$("lo").value, hi: +$("hi").value, seed: +$("seed").value};
+  $("status").className = ""; $("status").textContent = "Simulating 16,800 calls and running qc.py…";
+  try {
+    const r = await fetch("/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    const flagged = j.table.filter(t => t.flagged_days > 0).map(t => t.zone);
+    const missed = j.table.filter(t => t.injected && !t.flagged_days && !t.flagged_bands.length).map(t => t.zone);
+    $("status").textContent = `Done. ${j.affected_calls} of ${j.eligible_calls} eligible calls got extra minutes.`;
+    $("headline").innerHTML =
+      (flagged.length ? `Daily chart flags zone(s) <b>${flagged.join(", ")}</b>. ` : "Daily chart flags <b>no zone</b>. ") +
+      (missed.length ? `<span class="yes">Missed</span> by both views: ${missed.join(", ")}.` : "");
+    $("tbl").innerHTML = "<tr><th>Zone</th><th>Type</th><th>Late (monitoring)</th><th>Baseline p0</th><th>P90 min</th>" +
+      "<th>Above 10% target</th><th>Worse than baseline</th><th>Flagged days</th><th>Flagged time bands</th></tr>" +
+      j.table.map(t => `<tr class="${t.injected ? "inj" : ""}"><td>${t.zone}${t.injected ? " ●" : ""}</td><td>${t.type}</td>` +
+        `<td class="num">${pct(t.late_rate)}</td><td class="num">${pct(t.p0)}</td><td class="num">${t.p90?.toFixed(1) ?? "—"}</td>` +
+        `<td>${yesno(t.above_target, "yes", "no")}</td><td>${yesno(t.flagged_days > 0, "yes", "no")}</td>` +
+        `<td class="num">${t.flagged_days ? `${t.flagged_days} (${t.first_flag.slice(5)} → ${t.last_flag.slice(5)})` : "0"}</td>` +
+        `<td>${t.flagged_bands.length ? `<span class="yes">${t.flagged_bands.join(", ")}</span>` : '<span class="muted">none</span>'}</td></tr>`).join("");
+    $("pimg").src = j.pchart; $("bimg").src = j.bands;
+    ["sumcard","pcard","bcard"].forEach(id => $(id).hidden = false);
+  } catch (err) { $("status").className = "err"; $("status").textContent = "Error: " + err.message; }
+};
+</script>
+</body>
+</html>
