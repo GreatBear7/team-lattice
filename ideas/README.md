@@ -80,3 +80,56 @@ Takeaways:
    to log").
 5. **Keep the chance flag.** normal.csv's zone C evening-rush band flag is an expected chance flag (30
    unadjusted comparisons); document it, do not reseed to hide it.
+
+## 4. Proposed dataset change: replace `recovery.csv` with `evening_tail.csv`
+
+**Why.** With the current three files the tool answers "which zone" (C) and "which days"
+(Oct 1-11 / Oct 1-6) well, but it cannot show what the time-band view or a mean chart adds: zone C's
+change is all day and large, so every view catches it. The rubric allows 2-3 datasets, so replace
+one rather than add a fourth. Losing the recovery story is the cost.
+
+**Proposed scenario (team decision; Kaushik implements in `data/generate_data.py`):**
+
+| Setting | Value |
+|---|---|
+| File | `data/evening_tail.csv` (replaces `recovery.csv`) |
+| Zone | D (residential; not chronically slow like E/F, so the signal is not confused with "above target") |
+| Time of day | evening rush only: local notification hour 16, 17, 18 or 19 |
+| Days | 18-28 (2026-10-01 to 2026-10-11) |
+| Calls affected | 25% of those calls |
+| Extra travel | Uniform(15, 25) minutes ("rare but severe") |
+| Seed / baseline | unchanged: seed 5300, same shared draws, days 1-14 byte-identical |
+
+Implementation note: use the generator's existing injection stream with a different probability
+and range, exactly as `ideas/sim.py` does: `hit = U < 0.25`, increment `15 + 10*U2` (same `irng`
+draws, so it is reproducible). `normal.csv` and `hidden_tail.csv` stay unchanged.
+
+**Expected results on seed 5300** (computed with `ideas/sim.py` + `app/qc.py`; 79 of 302 eligible
+calls get extra minutes):
+
+| View | Zone D result |
+|---|---|
+| Daily p chart (main flag) | 1 flagged day of 11 (2026-10-01): the share of late calls barely moves (p0 0.141 -> 0.165 monitoring) |
+| Daily X-bar (mean, if the team adds it) | 5 flagged days (10-01, 10-06, 10-08, 10-09, 10-10); centre 9.008, UCL 10.032 |
+| Time-band view | **evening_rush flagged**: 0.316 vs UCL 0.246 (baseline p0_band 0.186) |
+| Five slowest (zone D) | all ~40-42 min, e.g. INC-20261001-D069 41.7 min |
+| Other zones | no daily flags; the known chance flag (zone C evening_rush, 0.183 vs UCL 0.175) as in normal.csv |
+
+Over 50 seeds (`ideas/scan.py`): daily p chart catches 15% of the changed days, X-bar 74%, and the
+evening-rush band is flagged in 100% of seeds; no false daily flags in other zones.
+
+**The three files then answer three different questions:**
+
+| File | Kind of problem | What catches it |
+|---|---|---|
+| `normal.csv` | none | nothing flags (shows no false alarms) |
+| `hidden_tail.csv` | zone C, all day, many calls a bit slower | every view: daily p chart (Oct 1-11), X-bar, all bands |
+| `evening_tail.csv` | zone D, evening rush only, a few calls much slower | time-band view, X-bar and the slowest list; the daily p chart mostly misses it |
+
+That gives the demo its point: the monthly citywide average misses all of it; the daily p chart
+catches broad slowdowns; the time-band view, the mean chart and the slowest list catch the "fatal
+outliers" the prompt is about.
+
+**Knock-on work if adopted:** B updates `tests/test_integration_data.py` expectations (D, not C,
+for the third file; bands); `scenario_truth.json` and `data/README.md` describe the new scenario;
+the demo script (H-05) and Final_Plan section 4 name the new file. About 20-30 minutes in total.
