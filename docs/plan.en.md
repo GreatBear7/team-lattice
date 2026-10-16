@@ -1,11 +1,12 @@
 # ResponseWatch: Four-Person Implementation Plan
 
-[中文版](plan.zh-CN.md) · [Plan index](plan.md) · [Team review](plan-review.md)
+[中文版](plan.zh-CN.md) · [Plan index](plan.md) · [Team review](plan-review.md) · [Time-of-day proposal](time-of-day-proposal.md)
 
 - Prepared: 2026-10-16. All scheduling uses New York time (ET).
 - Team: four people, temporarily labeled A/B/C/D; the team can assign actual names.
 - Track: on-campus; submission deadline: **2026-10-17 13:00 ET**.
 - Revision basis: `docs/plan-review.md` from team commit `609bed9`; this revision adopts the reduced scope, float-tolerance guidance, and retained dataset size.
+- Current revision: adopt time-of-day proposal `b1b86b5`; retain the daily zone p chart as the primary flag and add a pooled time-band comparison in zone detail.
 - Status: a proposed plan for execution and adjustment. ResponseWatch is a working name and Python/FastAPI/React is the recommended stack. This commit contains planning documents only; neither the application nor datasets have been implemented.
 
 ## 1. Prompt, User, and Product Goal
@@ -14,7 +15,7 @@
 
 > Ambulance dispatch to on-scene times are varying wildly across city zones, but the 911 center only looks at monthly averages, missing fatal outliers, not where or why these failures occur. Design a statistical tool to help manage dispatchers, response time logging in real-time, generate analyzes, and flag zones that are in need of resolution.
 
-The primary user is the **on-duty supervisor at a 911 dispatch center**. The core tool identifies zones for investigation, locates the delayed process stage, and compares normal, deteriorated, and recovery scenarios.
+The primary user is the **on-duty supervisor at a 911 dispatch center**. The core tool identifies zones for investigation, shows which times of day deteriorated relative to their own baselines, locates the delayed process stage, and compares normal, deteriorated, and recovery scenarios.
 
 Required flow: **load a scenario or CSV → inspect the zone summary and control chart → drill into timing stages → explain the signal and limitations.** Outputs describe response delays and statistical signals. Without patient outcome data, an overdue response is not labeled a death, and the prototype does not claim a mortality reduction.
 
@@ -25,10 +26,10 @@ Following the review, prioritize verified analysis and a working public deployme
 | Priority | Feature | Acceptance criterion |
 |---|---|---|
 | P0 | Synthetic generator, three CSVs, and codebook (H-02) | Reproduce the data with a fixed seed and document fields and scenarios |
-| P0 | Plain statistical functions and tests (H-03) | Late rate, P90, p chart, and validity status pass known-answer and edge-case tests |
+| P0 | Plain statistical functions and tests (H-03) | Late rate, P90, daily p chart, pooled time-band comparison, and validity status pass known-answer and edge-case tests |
 | P0 | Scenario selection or CSV upload and zone summary table (H-04) | Show n, late rate, P90, and flag/insufficient-evidence status; invalid input reports row numbers and reasons |
 | P0 | p chart for each zone (H-04) | Show the frozen baseline, limits reflecting n, and marked limit violations |
-| P0 | Timing stages in zone detail (H-04) | Inspect call handling/assignment, turnout, and travel for a flagged zone without extra manual logging |
+| P0 | Zone detail: timing stages and time bands (H-04) | Show three delay stages plus baseline/monitoring late rates and upper bounds for five time bands, without extra manual logging |
 | P0 | Public Posit Connect deployment (H-06) | Open while logged out and verify displayed numbers against backend tests |
 | Optional 1 | Simple form to add one completed incident | Consider only after core deployment acceptance; refresh summaries without editing, a live state machine, or timers |
 | Optional 2 | Virtual-clock replay, incident editing, live overdue timers | Evaluate only with a stable deployed core and sufficient time; independent of core acceptance |
@@ -53,6 +54,8 @@ Remove the former P2 items—real maps, allocation simulation, prediction, LLM e
 | `on_scene_at` | Timestamp with offset | Arrival; required for core historical imports |
 | `dispatcher_id` | Fictional string | Assignment information, not automatic attribution of blame |
 | `unit_id` | Fictional string | Identifier of the single responding vehicle |
+
+**Time band is derived, not a new required input.** Convert `unit_notified_at` to America/New_York before assigning a band; do not group by call receipt or arrival time. Section 5.4 defines half-open intervals and the baseline split.
 
 Definitions:
 
@@ -93,6 +96,27 @@ Use these directly implementable initial settings, all in minutes. `clip` caps a
 | Additional deterioration | During the specified zone C period, independently add another `Uniform(6,12)` travel minutes with 25% probability per incident |
 
 Use `log(median)` for the lognormal mean parameter in common libraries, rather than passing the median as the log mean. Ordinary tails and deterioration may overlap. Pre-generate injection masks and increments with a separate random stream so switching scenarios does not alter unaffected zones' original draws. These are demonstration assumptions, not empirical findings about real EMS duration distributions.
+
+### 4.1 Hourly Volume and Normal Rush Hours
+
+Sample the local unit-notification hour using relative weights, then sample minutes and seconds within that hour. Keep 100 incidents per zone per day. The following are **relative weights** normalized by their sum, 25.6, not fixed hourly counts:
+
+| Local hours | Weight per hour | Comparison band |
+|---|---:|---|
+| 00–05 | 0.5 | Night |
+| 06 and 09 | 1.0 | Morning rush |
+| 07–08 | 1.5 | Morning rush |
+| 10–15 | 1.2 | Midday |
+| 16–19 | 1.8 | Evening rush |
+| 20–23 | 0.8 | Late evening |
+
+For notifications during **07:00–09:00 and 16:00–19:00**, multiply routine travel time by **1.3**, with inclusive starts and exclusive ends. Cap routine travel first, apply the multiplier second, then add ordinary-tail and injected increments, so increments are not multiplied twice. These rush-factor windows are narrower than the comparison bands in section 5.4 and serve a different purpose.
+
+Hourly weights and the normal rush factor apply from the baseline onward, identically across all three scenarios, so they are not planted failures. A publishes weights, factors, calculation order, random streams, and scenario rules in the generator/codebook. A/B agree on them before H-02 starts.
+
+Retain the default all-day independent 25% probability of zone C's additional delay to preserve detection by the daily primary chart. The proposed concentration in 16:00–20:00 is an optional data variant: restricting the same 25% probability to that band dilutes the daily effect, so do not promise detection. If adopted, A/B must record the revised injection rule, verify realized detection in daily and band views, and replace an existing scenario rather than add a fourth CSV. It cannot delay core deployment.
+
+Each zone still has 1,400 monitoring incidents across 14 days, but bands have unequal counts. Under these weights, expected counts are approximately **night 164, morning rush 273, midday 394, evening rush 394, late evening 175**. Actual n comes from the realized sample. Do not assume 280 observations in every band; check adequacy for each one.
 
 Also deliver:
 
@@ -135,12 +159,51 @@ Display deterioration relative to historical performance separately from failure
 
 Component charts identify the delayed stage. Longer travel times may suggest checking coverage, routes, or traffic evidence; without additional data they do not establish congestion, staff fault, or a vehicle shortage. P90 is descriptive and must be marked unstable for small samples. Cp/Cpk and risk prediction are not part of the MVP.
 
+### 5.4 Pooled Time-Band Comparison: When Deterioration Occurred
+
+**The daily zone-by-day p chart remains the primary flag, with unchanged formulas and rules.** Add a second zone-detail view computed by a new plain function, `late_rate_by_band(df, T, baseline_end)`, in `app/qc.py`. Verify the daily statistics first, then this function; C displays its chart only after its tests pass.
+
+Derive five half-open bands from the unit-notification time in New York:
+
+| Key | Label | Local interval |
+|---|---|---|
+| `night` | Night | [00:00, 06:00) |
+| `morning_rush` | Morning rush | [06:00, 10:00) |
+| `midday` | Midday | [10:00, 16:00) |
+| `evening_rush` | Evening rush | [16:00, 20:00) |
+| `late_evening` | Late evening | [20:00, 24:00) |
+
+06:00 belongs to morning rush. 10:00, 16:00, and 20:00 enter the next interval, and next-day 00:00 belongs to that day's night band. The exclusive baseline end is **`2026-09-28T00:00:00-04:00`**: the first 14 days precede it, followed by monitoring days 15–28.
+
+For each zone, priority, and band, **pool counts across days**, separately for baseline and monitoring. Do not add zone-by-band-by-day control charts: splitting 100 daily incidents across five groups leaves many points with n·p0 below 5. This compares the full monitoring period against the same band's historical baseline; it is not a prediction of current risk. The summary table's primary flag still comes from the daily chart; display band flags separately in detail.
+
+```text
+p0_band = baseline_late_band / baseline_n_band  # weighted and frozen
+n_band = total valid monitoring incidents in this zone and band
+p_band = monitoring_late_band / n_band
+UCL_band = min(1, p0_band + 3 * sqrt(p0_band * (1 - p0_band) / n_band))
+LCL_band = max(0, p0_band - 3 * sqrt(p0_band * (1 - p0_band) / n_band))
+flag_band = p_band > UCL_band
+```
+
+Return insufficient evidence for an empty baseline, monitoring n=0, p0_band equal to 0 or 1, `n_band*p0_band < 5`, or `n_band*(1-p0_band) < 5`. Do not divide by zero or label such groups normal; preserve descriptive rates where defined. These are approximate historical-proportion comparison limits, not a formal multiplicity-adjusted inference.
+
+Show paired baseline/monitoring late-rate bars for five bands, with UCL markers, sample sizes, comparison dates, and evidence status; color above-limit bands red. Return results in a `time_of_day` field within the existing `GET /zones/{id}/analysis`, without new inputs or endpoints. Each item includes at least band, baseline_n, p0_band, n_band, p_band, ucl, lcl, flag, and status.
+
+State in the UI and README: **six zones × five bands create 30 exploratory comparisons; chance violations can occur, no multiple-comparison correction is applied, and red bars guide investigation rather than prove causes.** A band's own baseline accounts for normal rush-hour patterns. Recovery-period pooling still includes earlier deteriorated days, so recovery in the last few days need not remove a full-period red bar; inspect the daily primary chart for recent recovery.
+
+A risk-adjusted daily p chart is a statistical extension to evaluate only after the 02:00 gate: expected daily late count `E=sum(p0_band_of_each_call)`, with count limits `clip(E ± 3*sqrt(sum(p*(1-p))), 0, n_day)`. It addresses changing time-band composition, needs separate tests and explanation, and is outside six-item core acceptance. It cannot block deployment.
+
 ## 6. Required Statistical Tests
 
 | Test | Input | Expected result |
 |---|---|---|
 | Known proportion | `p0=0.10, n=100, d=20` | CL≈0.10, UCL≈0.19, LCL≈0.01, p≈0.20, deterioration flag true; compare numeric values with tolerance |
 | Limit boundary | Same setup, but `d=19` | p=0.19; no flag under the strict greater-than rule; assert the boolean separately |
+| Known band answer | `p0_band=0.20, n_band=400, d_band=108` | sigma≈0.02, UCL≈0.26, LCL≈0.14, p_band≈0.27, flag true; compare numeric values with tolerance |
+| Band limit boundary | Same setup, but `d_band=104` | p_band=0.26; no flag under strict greater-than |
+| Band assignment and empty groups | 06:00, 10:00, 16:00, 20:00, next-day 00:00, empty baseline/monitoring, p0_band=0 or 1 | Correct half-open bands, insufficient evidence for empty groups, timezone conversion first; UTC 10:00 maps to local 06:00 on these dates |
+| Hourly weights and normal rush | Weight sum 25.6; 1.3 factor present from baseline onward | Reproduce with the seed and shared baseline/draws; verify actual band n and do not treat normal rush as an injected failure |
 | Tail fixture | `[5,5,5,5,5,5,5,5,20,20]`, T=12 | Mean≈8, P90≈20, late rate≈0.20 |
 | Unequal baseline sizes | Batches with 1/10 and 18/90 late responses | Weighted p0≈19/100=0.19, not the unweighted average 0.15 |
 | Timing components | Call 12:00, notification 12:02, departure 12:04, arrival 12:12, same timezone | Assignment wait 2, turnout 2, travel 8, primary response 10, total wait 12 minutes |
@@ -155,6 +218,10 @@ assert result["lcl"] == pytest.approx(0.01, rel=1e-12, abs=1e-12)
 assert result["p"] == pytest.approx(0.20, rel=1e-12, abs=1e-12)
 assert result["flag"] is True  # d=20
 assert boundary_result["flag"] is False  # d=19
+assert band_result["ucl"] == pytest.approx(0.26, rel=1e-12, abs=1e-12)
+assert band_result["lcl"] == pytest.approx(0.14, rel=1e-12, abs=1e-12)
+assert band_result["flag"] is True  # d_band=108
+assert band_boundary_result["flag"] is False  # d_band=104
 ```
 
 Accept the statistical layer only after known-answer, boundary, degenerate-input, and planted-signal tests pass. If optional replay is implemented, add tests for unsettled-cohort exclusion and hidden future arrivals; the core does not depend on replay tests.
@@ -162,8 +229,8 @@ Accept the statistical layer only after known-answer, boundary, degenerate-input
 ## 7. Core Architecture, Interfaces, and Collaboration
 
 - Recommended stack: plain Python statistics + FastAPI + React/Vite. Preserve `testme`, `manifestme`, `deployme`, and README conventions. Start with `demos/fastapi/`, place the React frontend in `app/frontend/`, and confirm choices before implementation.
-- **Only four core endpoints:** `GET /health`, `POST /datasets/load`, `GET /zones/summary`, and `GET /zones/{id}/analysis`. They cover scenario selection/upload, zone summaries, daily control charts, and timing stages. These are planned contracts, not implemented endpoints.
-- Return units, stratification, sample sizes, baseline dates, T, control-chart availability, and excluded counts. Return optional q only when enabled. Validate and compute server-side; do not duplicate statistics in the frontend.
+- **Only four core endpoints:** `GET /health`, `POST /datasets/load`, `GET /zones/summary`, and `GET /zones/{id}/analysis`. They cover scenario selection/upload, zone summaries, daily control charts, timing stages, and the detail response's `time_of_day` field. These are planned contracts, not implemented endpoints.
+- Return units, stratification, sample sizes, baseline dates, T, control-chart availability, and excluded counts. The band structure also includes baseline_n, p0_band, n_band, comparison dates, and evidence status. Return optional q only when enabled. Validate and compute server-side; do not duplicate statistics in the frontend.
 - Request analysis after loading data; no polling, live state machine, or incident editing is required. A loaded dataset may live in single-process memory, with a clear reload-after-restart notice. Do not add a database for this submission.
 - After the optional gate passes, consider `POST /incidents` first, limited to adding one completed incident and refreshing summaries. `PATCH /incidents/{id}`, incident-list endpoints, polling, a virtual clock, and timers remain lower-priority replay options and cannot become dependencies of the core API.
 - Only if replay is actually built, add currently visible states, pending counts, pause/acceleration/reset, and synthetic-simulation labels. Follow-up logs and maps also stay outside the core architecture. Arrival does not mean a unit is available again.
@@ -173,10 +240,10 @@ Accept the statistical layer only after known-answer, boundary, degenerate-input
 
 | Member | Responsibility and paths | Required deliverable | Dependencies and handoff |
 |---|---|---|---|
-| A: data lead | H-02; `data/`, then support H-05 | Three-scenario generator at 100 incidents/zone/day, CSVs, codebook, scenario truth | Agree definitions and approximation checks with B, independently verify known answers, provide data to C/D |
-| B: statistics lead | H-03; `app/qc.py`, statistical dependencies, `tests/` | Late rate, P90, p chart, validity status, and tolerance/boundary tests | Cross-check with A; hand off a stable JSON structure after tests pass |
-| C: frontend lead | H-04 frontend sub-scope; `app/frontend/` | Scenario selection/upload, zone summary table, per-zone p charts, and stage detail | Start with wireframes/contracts, integrate after statistical validation; live lists, maps, and follow-up are not required |
-| D: backend/release lead | H-04 backend sub-scope and H-06; `app/` excluding B/C paths, plus deployment files | Four core endpoints, complete flow, public deployment, H-07/H-08 material integration | Do not add non-core write endpoints or a state machine; deploy early after validation and coordinate submission |
+| A: data lead | H-02; `data/`, then support H-05 | Three scenarios at 100 incidents/zone/day, hourly weights/normal rush, CSVs, codebook, scenario truth | Agree definitions and approximation checks with B, independently verify known answers, provide data to C/D |
+| B: statistics lead | H-03; `app/qc.py`, statistical dependencies, `tests/` | Verify daily statistics first, then `late_rate_by_band`, validity, tolerance, empty-group and band-boundary tests | Cross-check with A; hand off a stable JSON structure after tests pass |
+| C: frontend lead | H-04 frontend sub-scope; `app/frontend/` | Scenario selection/upload, summary table, daily p charts, stage detail and five-band paired bars | Start with wireframes/contracts, integrate after statistical validation; live lists, maps, and follow-up are not required |
+| D: backend/release lead | H-04 backend sub-scope and H-06; `app/` excluding B/C paths, plus deployment files | Four core endpoints, band detail structure, public deployment, H-07/H-08 material integration | Do not add non-core write endpoints or a state machine; deploy early after validation and coordinate submission |
 
 All four members confirm H-01's user, metrics, and scope. Actual team name and prompt number remain to be entered in SPEC. Each member claims one task at a time. Record disjoint H-04 paths and owners before C/D work concurrently; B exclusively owns statistics. D assembles the README, A/B provide data/method notes, and C supplies screenshots and demo actions. Optional work may be claimed only after the section 2 gate passes and cannot displace core responsibilities.
 
@@ -184,9 +251,9 @@ All four members confirm H-01's user, metrics, and scope. Actual team name and p
 
 | Time (ET) | Phase and CONTRACT mapping | Required outcome |
 |---|---|---|
-| First 45 minutes on 10-16 | Reduced scope and contracts; H-01 | Confirm six core items, timing definitions, T, baseline, and response structure |
-| By 10-16 18:30 | Data and statistics; H-02/H-03 | Generate three scenarios; validate known numbers with tolerance and pass exact d=19/20 boundary booleans |
-| By 10-16 21:30 | Complete core flow; H-04 | Scenario/CSV → compute → zone summary → p chart → stage detail; no replay or editing requirement |
+| First 45 minutes on 10-16 | Reduced scope and contracts; H-01 | Confirm six core items, timing definitions, T, baseline, hourly/rush settings, and five-band response structure |
+| By 10-16 18:30 | Data and statistics; H-02/H-03 | Generate three scenarios with normal rush; pass daily/band known answers, tolerance, empty-group and band-boundary tests |
+| By 10-16 21:30 | Complete core flow; H-04 | Scenario/CSV → summary → daily p chart → stage and five-band detail; no replay or editing requirement |
 | By 10-16 22:30 | First public deployment; H-06 | All six P0 items accessible, with UI/API numbers matching tests; do not wait for optional work |
 | By 10-16 23:30 | Three scenarios and peer review; H-05/H-07 | Another member reproduces results, core faults are fixed, and rest is arranged |
 | No later than 10-17 02:00 | Optional-feature eligibility check | Permit optional work only with a deployed, verified core; otherwise cancel it all; prefer the completed-incident form with a 30–45-minute timebox |
@@ -205,13 +272,13 @@ Start H-06 as soon as the first core complete flow works and check H-08 reposito
 - Known-answer/boundary/degenerate tests, core API smoke checks, and UI/backend numeric agreement.
 - Public repository, Posit Connect demo, README, `demo/README.md`, and submission materials.
 
-The default demo requires no optional functionality: **show the exact equal-mean/different-tail fixture → load normal → switch to hidden_tail → find zone C's higher late rate/P90 in the summary → inspect p-chart violations → drill into travel time → switch to recovery → show reproduction commands and statistical tests.** Distinguish simulated improvement, observed association, and established causes.
+The default demo requires no optional functionality: **show the exact equal-mean/different-tail fixture → load normal → switch to hidden_tail → find zone C's higher late rate/P90 in the summary → inspect p-chart violations → drill into travel time and pooled bands → distinguish normal rush from deterioration relative to its own baseline → switch to recovery → show reproduction commands and statistical tests.** Distinguish simulated improvement, observed association, and established causes; use the daily chart for recovery rather than expecting a full-period pooled signal to immediately disappear.
 
 If a completed-incident form or another optional feature passed its gate and is stable, demonstrate it separately in a short segment. The main demonstration must still work with optional features disabled. State unimplemented live capabilities clearly, and do not describe CSV scenario switching as real-time replay.
 
 ## 11. Three Main Risks and Responses
 
-1. **Incorrect statistical definitions:** fix the notification-to-scene primary metric, freeze the historical baseline, isolate statistical code, and have A/B cross-check calculations.
+1. **Incorrect statistical definitions:** fix the notification-to-scene metric and frozen baseline; derive bands from local notification times and pool across days; have A/B cross-check and explain 30 exploratory comparisons and approximation assumptions.
 2. **Scope/deployment delay:** require only the six P0 items; replay, editing, timers, and maps cannot block deployment; retain the 22:30 deployment target, 02:00 optional eligibility gate, and 11:00 freeze.
 3. **Synthetic data that merely validates itself:** publish parameters and ground truth, keep scenario labels away from analysis, and verify known answers, independent fixtures, and edge cases rather than relying only on demonstration charts.
 
@@ -230,5 +297,14 @@ Source: [team plan review](plan-review.md), commit `609bed9`. Apply all three ch
 | Shrink the required core | Keep six P0 items; gate all live options; remove core API, ownership, schedule, and demo dependencies on them; drop former P2 |
 | Tolerant float comparisons | Use `pytest.approx` for numeric assertions while preserving strict `p > UCL` and independent d=19/20 boolean checks |
 | Optional reduction in row count, with a recommendation to retain it | Keep 100 incidents/zone/day, approximately 16,800 rows/CSV, and verify realized zone baselines and approximation checks |
+
+Current proposal: [time-of-day analysis](time-of-day-proposal.md), commit `b1b86b5`.
+
+| Time-of-day proposal | Resolution |
+|---|---|
+| Normal hourly volume and rush | Publish fixed hourly weights and a 1.3 rush factor in the baseline too; retain all-day injection by default and validate any optional evening-only variant |
+| New statistic and verification | Add pooled `late_rate_by_band`; known UCL≈0.26/LCL≈0.14; test empty groups, timezone conversion, boundaries and insufficient evidence |
+| Zone detail | Add five-band baseline/monitoring bars with UCL through the existing detail endpoint, without new inputs or endpoints |
+| Risks and scope | Explain 30 unadjusted exploratory comparisons; retain the daily primary chart, six core items, four endpoints, dataset size and schedule; gate risk adjustment as an extension |
 
 Next: complete H-01's SPEC together with the actual team name, prompt number, and final choices, then have A/B advance H-02/H-03 in parallel against the agreed definitions. This revision changes plans only and does not mark implementation tasks complete.
