@@ -111,16 +111,16 @@ tasks:
   - id: H-05
     title: Demonstration of the tool on every test dataset
     points: "10 - Tool Design: a clear demonstration of the tool, using test datasets"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: done
+    owner: "Claire (wrote demo/README.md); Kaushik (independent walkthrough)"
+    started_at: "2026-10-17 11:35"
     owns: ["demo/", "app/frontend/"]
     definition_of_done: >
       demo/README.md walks through each data/ CSV with the exact command or
       URL to run, the numbers or chart the tool shows, and a one-line "how to
       read this"; a teammate who did not write it follows it and gets the same
       numbers.
-    result: ""
+    result: "Kaushik (did not write it) followed demo/README.md on the live URL 2026-10-17: normal no daily/band flags; recovery C flagged Oct 1-6, bands midday+evening, travel P90 12.49->16.46; morning_tail D 0 daily flags, morning band 0.371 vs 0.179 baseline, UCL 0.287; uploaded recovery.csv reproduces built-in C chart; malformed CSV -> HTTP 422 with row/field error. All match the script."
 
   - id: H-06
     title: Deploy to the course Posit Connect server
