@@ -96,8 +96,25 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
   const dateIndices = [...new Set([0, Math.round((points.length - 1) / 4), Math.round((points.length - 1) / 2), Math.round((points.length - 1) * .75), points.length - 1])]
 
   const tooltipWidth = Math.min(280, Math.max(160, w - 16))
-  const anchorX = pointer?.x ?? (active == null ? 0 : x(active))
-  const tooltipLeft = Math.max(8, Math.min(w - tooltipWidth - 8, anchorX - tooltipWidth / 2))
+  const tooltipHeight = 78
+  const anchor = pointer || { x: active == null ? w/2 : x(active), y: activePoint && finite(activePoint.p) ? y(activePoint.p) : h/2 }
+  const clamp = (value, max) => Math.max(8, Math.min(max, value))
+  const candidates = [
+    [anchor.x+16, anchor.y-tooltipHeight-16], [anchor.x-tooltipWidth-16, anchor.y-tooltipHeight-16],
+    [anchor.x+16, anchor.y+16], [anchor.x-tooltipWidth-16, anchor.y+16],
+    [8, 8], [w-tooltipWidth-8, 8], [8, h-tooltipHeight-8], [w-tooltipWidth-8, h-tooltipHeight-8],
+  ].map(([left,top]) => ({ left: clamp(left,w-tooltipWidth-8), top: clamp(top,h-tooltipHeight-8) }))
+  const tooltipPosition = candidates.sort((a,b) => {
+    const score = box => {
+      const inside = (px,py) => px >= box.left-6 && px <= box.left+tooltipWidth+6 && py >= box.top-6 && py <= box.top+tooltipHeight+6
+      let penalty = activePoint && finite(activePoint.p) && inside(x(active),y(activePoint.p)) ? 10000 : 0
+      points.forEach((point,index) => {
+        for (const key of ['p','cl','ucl','lcl']) if (finite(point[key]) && inside(x(index), y(point[key]))) penalty += key === 'p' ? 100 : 10
+      })
+      return penalty + Math.hypot(box.left-anchor.x,box.top-anchor.y)/100
+    }
+    return score(a)-score(b)
+  })[0]
   return <div className={`daily-chart ${compact ? 'chart-compact' : ''}`}>
     <div className="chart-svg-wrap" ref={plotRef}>
       <svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="group" aria-label="Daily late-rate p control chart" aria-describedby={descriptionId} onPointerMove={inspectPointer} onPointerLeave={() => { setActive(null); setPointer(null) }}>
@@ -115,7 +132,7 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         {points.map((point, index) => {
           const px = x(index), py = finite(point.p) ? y(point.p) : y(0)
           const isFlagged = point.deterioration_flag === true
-          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => { setActive(index); setPointer(null) }} onBlur={() => setActive(null)} onClick={() => onSelectDate?.(point.date)} onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const next = Math.max(0, Math.min(points.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1))); event.currentTarget.parentElement.querySelectorAll('.chart-point')[next]?.focus(); return } if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
+          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => { setActive(index); setPointer(null) }} onBlur={() => setActive(null)} onClick={() => { setActive(index); onSelectDate?.(point.date) }} onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const next = Math.max(0, Math.min(points.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1))); event.currentTarget.parentElement.querySelectorAll('.chart-point')[next]?.focus(); return } if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
             <title>{pointDescription(point)}</title>
             <circle cx={px} cy={py} r="11" fill="transparent" className="chart-point-hit" />
             {finite(point.p) ? isFlagged ? <path d={`M${px},${py - 5.4} L${px + 5.2},${py + 4.1} L${px - 5.2},${py + 4.1} Z`} fill={palette.red} stroke="#fff" strokeWidth="1.2" /> : <circle cx={px} cy={py} r={selectedDate === point.date ? 4.5 : 3.2} fill={palette.blue} stroke="#fff" strokeWidth="1.2" /> : <path d={`M${px - 3},${py - 3}l6,6m0,-6l-6,6`} stroke={palette.muted} />}
@@ -123,10 +140,7 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         })}
         {dateIndices.map(index => <text key={index} x={x(index)} y={h - 9} textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'} className="chart-axis-label">{dateLabel(points[index].date)}</text>)}
       </svg>
-    </div>
-    <div className="chart-tooltip-lane" aria-label="Daily chart inspection">
-      {!activePoint && <span className="chart-inspection-hint">Move across the chart to inspect a day · arrow keys also supported</span>}
-      {activePoint && <div className="chart-tooltip" role="status" style={{ left: tooltipLeft, top: pointer ? Math.max(0, Math.min(10, pointer.y / Math.max(1, h) * 10)) : 0, width: tooltipWidth }}>{dailyTooltipText(activePoint)}</div>}
+      {activePoint && <div className="chart-tooltip" role="status" style={{ ...tooltipPosition, width: tooltipWidth }}><strong>{dateLabel(activePoint.date)} · {dailyPointStatus(activePoint)}</strong><span>{integer(activePoint.late)} of {integer(activePoint.n)} calls late · {percent(activePoint.p)}</span></div>}
     </div>
   </div>
 }

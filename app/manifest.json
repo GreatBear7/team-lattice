@@ -28,11 +28,11 @@
     "api.py": {
       "checksum": "73c942ee7d10dd267fceacf404c20c64"
     },
-    "frontend/dist/assets/index-C9jOhD3F.js": {
-      "checksum": "91c3edc8a903fbed0aad5d93f0bc7aaa"
+    "frontend/dist/assets/index-lkeP_LBS.js": {
+      "checksum": "4c1716ad5cf736ed32434f0ab0a8d02d"
     },
-    "frontend/dist/assets/index-CfeC6QG4.css": {
-      "checksum": "38ef2a67d18e2a645fb49a9f8bb90aa9"
+    "frontend/dist/assets/index-pZ65jxoT.css": {
+      "checksum": "1b2e9062743367100c76cf9336021d77"
     },
     "frontend/dist/assets/morning_tail-l4Mo1DuS.js": {
       "checksum": "14b6614c0941ed38d486c28ddf1b8631"
@@ -44,7 +44,7 @@
       "checksum": "a448881ffa65bcbff1f57a7c8ac54eb7"
     },
     "frontend/dist/index.html": {
-      "checksum": "352f43e8eb5bc9c7fbd86037d8000698"
+      "checksum": "4c73eeb4d0adbfbfec81caad26e89a40"
     },
     "qc.py": {
       "checksum": "22a450c4bdd99531c8017c6f1fd10f2b"

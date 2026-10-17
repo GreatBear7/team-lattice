@@ -112,8 +112,7 @@ function SourcePanel({ config, onApply, onUpload, source, fileName, busy }) {
   </div></div>
 }
 
-function WhereWhen({ analysis, client, bundle, selectedZone, onSelectZone }) {
-  const [windowDays, setWindowDays] = useState(14)
+function WhereWhen({ analysis, client, bundle, selectedZone, onSelectZone, windowDays, setWindowDays }) {
   const [smooth, setSmooth] = useState(1)
   const [display, setDisplay] = useState('hourly')
   const [hourly, setHourly] = useState(null)
@@ -140,8 +139,63 @@ function WhereWhen({ analysis, client, bundle, selectedZone, onSelectZone }) {
   </div>
 }
 
+export function managerMessage(analysis, bands) {
+  const z = analysis.summary
+  const fullPeriod = `${dateLabel(analysis.monitoring.start)}–${dateLabel(analysis.monitoring.end)}`
+  if (z.deterioration_flag === true) return {
+    tone: 'danger', title: 'Response times worsened', value: String(z.deterioration_days), unit: 'days worse than usual',
+    comparison: `${dateLabel(z.first_flag_date)}–${dateLabel(z.last_flag_date)} · compared with this zone’s first 14 days`,
+    action: 'Review the affected dates, then compare travel and turnout times.', view: 'daily', scope: fullPeriod,
+  }
+  const band = bands?.filter(b => b.flag === true && b.status === 'ok').sort((a,b) => (b.p_band-b.p0_band)-(a.p_band-a.p0_band))[0]
+  if (band) return {
+    tone: 'danger', title: `${band.label} needs attention`, value: percent(band.p_band), unit: 'calls arrived late in this time band',
+    comparison: `Previously ${percent(band.p0_band)} · first 14 days`,
+    action: 'Review coverage and travel delays during this time band. Daily totals can hide the change.', view: 'where', band: true,
+  }
+  if (z.deterioration_flag == null || z.above_service_target == null || !bands || bands.length < 5 || bands.some(b => b.status !== 'ok' || b.flag == null)) return {
+    tone: 'neutral', title: 'Not enough data to assess change', value: '—', unit: 'assessment incomplete',
+    comparison: 'Some daily or time-band comparisons are unavailable.', action: 'Check data coverage before drawing a conclusion.', view: 'where', scope: fullPeriod,
+  }
+  return z.above_service_target === true ? {
+    tone: 'warning', title: 'Consistently slow; no new deterioration detected', value: percent(z.late_rate), unit: 'calls arrived late · full period',
+    comparison: `Target: at most ${percent(analysis.settings.q)} · previously ${percent(z.p0)}`,
+    action: 'Review district coverage and station access; compare the response stages.', view: 'stages', scope: fullPeriod,
+  } : {
+    tone: 'quiet', title: 'No deterioration detected; target met', value: percent(z.late_rate), unit: 'calls arrived late · full period',
+    comparison: `Target: at most ${percent(analysis.settings.q)} · previously ${percent(z.p0)}`,
+    action: 'Continue monitoring. A stable rate does not rule out individual long waits.', view: 'daily', scope: fullPeriod,
+  }
+}
+
+export function ManagerInsight({ analysis, bundle, client, windowDays, onViewChange }) {
+  const [state, setState] = useState({ data: null, error: false })
+  useEffect(() => {
+    const controller = new AbortController()
+    setState({ data: null, error: false })
+    if (windowDays !== 14) client.getHourlyView(bundle, { windowDays, smooth: 1, signal: controller.signal })
+      .then(data => { if (!controller.signal.aborted) setState({ data, error: false }) })
+      .catch(() => { if (!controller.signal.aborted) setState({ data: null, error: true }) })
+    return () => controller.abort()
+  }, [bundle, client, windowDays])
+  const id = analysis.summary.zone_id
+  const bands = windowDays === 14 ? bundle.summary.time_of_day_all_zones?.[id] : state.data?.time_of_day_all_zones?.[id]
+  const message = managerMessage(analysis, bands)
+  const loading = windowDays !== 14 && !state.data && !state.error
+  const scope = message.band ? (windowDays === 7 ? 'Latest 7 monitoring days' : `${dateLabel(analysis.monitoring.start)}–${dateLabel(analysis.monitoring.end)}`) : message.scope
+  return <section className={`panel outlier-panel insight-panel insight-${message.tone}`} aria-label="Manager insight">
+    <div className="insight-heading"><h2>Manager insight</h2><span>Zone {id}</span></div>
+    {loading ? <p className="insight-loading" role="status">Updating time-band insight…</p> : <div className="insight-content" aria-live="polite">
+      <h3>{message.title}</h3><div className="insight-number">{message.value}</div><p className="insight-unit">{message.unit}</p>
+      <p className="insight-comparison">{message.comparison}</p>
+      <button className="insight-action" onClick={() => onViewChange(message.view)}>{message.action}<span aria-hidden="true"> ↗</span></button>
+      <p className="insight-scope">{scope} · completed calls{windowDays === 7 && !message.band ? ' · time-band view: latest 7 days' : ''}</p>
+    </div>}
+  </section>
+}
+
 export const analysisTabs = [['daily', 'Daily p chart'], ['where', 'Where & when'], ['stages', 'Why']]
-function AnalysisPanel({ analysis, bundle, client, view, onViewChange, showMethods, onCloseMethods, selectedDate, onSelectDate, onSelectZone, sourceProps }) {
+function AnalysisPanel({ analysis, bundle, client, windowDays, setWindowDays, view, onViewChange, showMethods, onCloseMethods, selectedDate, onSelectDate, onSelectZone, sourceProps }) {
   const [showData, setShowData] = useState(false)
   const zone = analysis.summary
   const point = analysis.daily_p_chart.points.find((p) => p.date === selectedDate) || analysis.daily_p_chart.points.at(-1)
@@ -158,7 +212,7 @@ function AnalysisPanel({ analysis, bundle, client, view, onViewChange, showMetho
     {showMethods ? <SourcePanel {...sourceProps} source={bundle.provenance} /> : <>
       <div className="analysis-tabs" role="tablist" aria-label="Selected-zone analysis">{analysisTabs.map(([id, label]) => <button key={id} id={`tab-${id}`} role="tab" tabIndex={view === id ? 0 : -1} aria-selected={view === id} aria-controls={`analysis-${id}`} className="analysis-tab" onClick={() => selectView(id)} onKeyDown={navigateTabs}>{label}</button>)}{view !== 'where' && <button className="text-button data-toggle" onClick={() => setShowData(!showData)} aria-expanded={showData}>{showData ? 'Show chart' : view === 'daily' ? 'View daily data' : 'View stage data'}</button>}</div>
       <div className="analysis-body" id={`analysis-${view}`} role="tabpanel" tabIndex={0} aria-labelledby={`tab-${view}`}>
-        {view === 'daily' ? <div className="daily-content"><div className="chart-legend"><span><i className="legend-line observation" />Daily late rate</span><span><i className="legend-line baseline" />Baseline {percent(zone.p0)}</span><span><i className="legend-line limit" />Usual range</span><span><i className="legend-line target" />Target {percent(analysis.settings.q)}</span><span><i className="legend-triangle" />Worse than normal</span></div>{showData ? <DailyData points={analysis.daily_p_chart.points} /> : <div className="daily-chart-area"><DailyPChart chart={analysis.daily_p_chart} q={analysis.settings.q} selectedDate={point?.date} onSelectDate={onSelectDate} /></div>}<div className="chart-readout" aria-live="polite">{point ? <><strong>{dateLabel(point.date)}</strong><span>{point.phase === 'baseline' ? 'Baseline' : 'Monitoring'}</span><span>{integer(point.late)} / {integer(point.n)} late</span><b>{percent(point.p)}</b><span className={point.deterioration_flag ? 'signal-text' : ''}>{dailyEvidenceLabel(point)}</span></> : 'No completed daily cohorts.'}</div></div> : view === 'where' ? <WhereWhen analysis={analysis} client={client} bundle={bundle} selectedZone={zone.zone_id} onSelectZone={onSelectZone} /> : <StageEvidence stages={analysis.stages} showData={showData} />}
+        {view === 'daily' ? <div className="daily-content"><div className="chart-legend"><span><i className="legend-line observation" />Daily late rate</span><span><i className="legend-line baseline" />Baseline {percent(zone.p0)}</span><span><i className="legend-line limit" />Usual range</span><span><i className="legend-line target" />Target {percent(analysis.settings.q)}</span><span><i className="legend-triangle" />Worse than normal</span></div>{showData ? <DailyData points={analysis.daily_p_chart.points} /> : <div className="daily-chart-area"><DailyPChart chart={analysis.daily_p_chart} q={analysis.settings.q} selectedDate={point?.date} onSelectDate={onSelectDate} /></div>}<div className="chart-readout" aria-live="polite">{point ? <><strong>{dateLabel(point.date)}</strong><span>{point.phase === 'baseline' ? 'Baseline' : 'Monitoring'}</span><span>{integer(point.late)} / {integer(point.n)} late</span><b>{percent(point.p)}</b><span className={point.deterioration_flag ? 'signal-text' : ''}>{dailyEvidenceLabel(point)}</span></> : 'No completed daily cohorts.'}</div></div> : view === 'where' ? <WhereWhen windowDays={windowDays} setWindowDays={setWindowDays} analysis={analysis} client={client} bundle={bundle} selectedZone={zone.zone_id} onSelectZone={onSelectZone} /> : <StageEvidence stages={analysis.stages} showData={showData} />}
       </div>
       {view === 'daily' && <p className="analysis-caption chart-explainer">Teal = this zone’s normal late rate from its first 14 days. Dashed lines = usual daily range. Red triangle = worse than normal. Dotted line = target: at most {percent(analysis.settings.q)} late.</p>}
       {view === 'daily' && <p className="analysis-caption">{zone.deterioration_flag === true ? <><span className="signal-text">{zone.deterioration_days} days worse than normal · {dateLabel(zone.first_flag_date)}–{dateLabel(zone.last_flag_date)}.</span> Check later days to see whether performance returned to usual.</> : zone.deterioration_flag === false ? 'No days worse than usual. Check time-of-day patterns and individual long calls too.' : 'Daily evidence unavailable; do not interpret this as normal.'}</p>}
@@ -183,15 +237,14 @@ export default function App() {
   const [view, setView] = useState('where')
   const [selectedDate, setSelectedDate] = useState('2026-10-11')
   const [showMethods, setShowMethods] = useState(false)
-  const [incidentScope, setIncidentScope] = useState('all')
-  const [timestamps, setTimestamps] = useState(false)
+  const [windowDays, setWindowDays] = useState(14)
   const client = useMemo(() => createDataClient(config), [config])
   useEffect(() => {
     const controller = new AbortController()
     let current = true
     setLoading(true); setError(null); setBundle(null)
     const operation = file ? client.uploadCsv(file, { signal: controller.signal }) : client.loadScenario(scenario, { signal: controller.signal })
-    operation.then((value) => { if (current) { const focus = initialFocus(value.summary); setBundle(value); setSelectedZone(focus.zone); setView(focus.view); setShowMethods(false); setLoading(false) } }).catch((err) => { if (current && err.code !== 'ABORTED') { setError(err); setShowMethods(false); setLoading(false) } })
+    operation.then((value) => { if (current) { const focus = initialFocus(value.summary); setBundle(value); setWindowDays(14); setSelectedZone(focus.zone); setView(focus.view); setShowMethods(false); setLoading(false) } }).catch((err) => { if (current && err.code !== 'ABORTED') { setError(err); setShowMethods(false); setLoading(false) } })
     return () => { current = false; controller.abort() }
   }, [client, scenario, file, retry])
   const summary = bundle?.summary
@@ -206,8 +259,8 @@ export default function App() {
       <h1 className="sr-only">Response quality</h1>
       {error ? showMethods ? <section className="panel error-panel source-error"><div className="panel-heading"><h2>Data source & interpretation</h2><button className="text-button" onClick={() => setShowMethods(false)}>Back to error</button></div><SourcePanel {...sourceProps} /></section> : <LoadError error={error} onRetry={() => setRetry(retry + 1)} onSource={() => setShowMethods(true)} /> : !bundle ? <div className="loading-layout" role="status">Loading {config.mode === 'api' ? 'from the statistics service' : 'precomputed evidence'}…</div> : <>
         <ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected={selectedZone} onSelect={selectZone} />
-        <AnalysisPanel analysis={analysis} bundle={bundle} client={client} view={view} onViewChange={setView} showMethods={showMethods} onCloseMethods={() => setShowMethods(false)} selectedDate={selectedDate} onSelectDate={setSelectedDate} onSelectZone={selectZone} sourceProps={sourceProps} />
-        <section className="panel outlier-panel" aria-label="Longest completed responses"><div className="panel-heading"><div><h2>Longest individual responses</h2><span className="sample-note">Five longest calls · full monitoring period</span></div><div className="incident-controls"><div className="segmented incident-scope-toggle" role="group" aria-label="Incident scope"><button aria-pressed={incidentScope === 'all'} onClick={() => setIncidentScope('all')}>All zones</button><button aria-pressed={incidentScope === 'selected'} onClick={() => setIncidentScope('selected')}>Zone {selectedZone}</button></div><button className="text-button" onClick={() => setTimestamps(!timestamps)} aria-expanded={timestamps}>{timestamps ? 'Hide timestamps' : 'Show timestamps'}</button></div></div><p className="incident-context">Long calls can be usual in outer zones. Use the charts to check for a new change.</p><SlowestTable incidents={incidentScope === 'all' ? summary.slowest_incidents : analysis.slowest_incidents} showTimestamps={timestamps} onSelectZone={selectZone} /></section>
+        <AnalysisPanel analysis={analysis} bundle={bundle} client={client} windowDays={windowDays} setWindowDays={setWindowDays} view={view} onViewChange={setView} showMethods={showMethods} onCloseMethods={() => setShowMethods(false)} selectedDate={selectedDate} onSelectDate={setSelectedDate} onSelectZone={selectZone} sourceProps={sourceProps} />
+        <ManagerInsight key={`${bundle.datasetId || summary.dataset_id}-${selectedZone}`} analysis={analysis} bundle={bundle} client={client} windowDays={windowDays} onViewChange={setView} />
       </>}
     </main>
     <footer className="statusbar"><span>{file ? `CSV: ${file.name}` : 'Synthetic, historical incidents'} · {config.mode === 'demo' ? 'precomputed preview' : 'backend statistics'} · not a live dispatch feed</span><span>Late = response &gt; {summary?.settings.T_min ?? 12} min · target ≤ {percent(summary?.settings.q ?? .1)} late · demo settings</span></footer>

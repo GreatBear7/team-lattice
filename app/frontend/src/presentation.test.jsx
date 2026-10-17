@@ -1,7 +1,7 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs } from './App.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs, managerMessage } from './App.jsx'
 import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex, dailyTooltipText } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
@@ -267,5 +267,34 @@ describe('issue 7 supervisor clarity', () => {
   it('orders the operator tabs and retains missing-data warnings', () => {
     expect(analysisTabs).toEqual([['daily', 'Daily p chart'], ['where', 'Where & when'], ['stages', 'Why']])
     expect(dailyTooltipText({ date: '2026-10-11', late: null, n: 0, p: null, status: 'no_data' })).toContain('Not enough data')
+  })
+})
+
+
+describe('manager insight conclusions', () => {
+  it('separates daily deterioration, hidden time-band change, and chronic slowness', async () => {
+    const recovery = await getDashboard('recovery')
+    expect(managerMessage(recovery.analyses.C, recovery.summary.time_of_day_all_zones.C)).toMatchObject({ tone: 'danger', value: '6', view: 'daily' })
+    const morning = await getDashboard('morning_tail')
+    const message = managerMessage(morning.analyses.D, morning.summary.time_of_day_all_zones.D)
+    expect(message).toMatchObject({ tone: 'danger', band: true, view: 'where', value: '37.1%' })
+    expect(message.comparison).toContain('17.9%')
+    const normal = await getDashboard('normal')
+    expect(managerMessage(normal.analyses.E, normal.summary.time_of_day_all_zones.E)).toMatchObject({ tone: 'warning', value: '24.4%', view: 'stages' })
+    expect(managerMessage(normal.analyses.A, normal.summary.time_of_day_all_zones.A).title).toContain('target met')
+  })
+  it('does not turn missing evidence into a normal conclusion', async () => {
+    const normal = await getDashboard('normal')
+    for (const bands of [null, [], normal.summary.time_of_day_all_zones.A.map(b => ({...b, flag:null}))]) {
+      expect(managerMessage(normal.analyses.A, bands).title).toContain('Not enough data')
+    }
+  })
+  it('uses the selected time-band window without changing daily evidence', async () => {
+    const morning = await getDashboard('morning_tail')
+    const client = (await import('./api/client.js')).createDataClient()
+    const latest = await client.getHourlyView(morning, {windowDays:7, smooth:1})
+    const message = managerMessage(morning.analyses.D, latest.time_of_day_all_zones.D)
+    expect(message.value).toBe('41.3%')
+    expect(morning.analyses.D.summary.deterioration_days).toBe(0)
   })
 })

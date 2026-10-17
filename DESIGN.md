@@ -287,8 +287,10 @@ The reduced-motion media rule disables transitions and animation. Plot geometry 
 - Don't add decorative imagery or shadows to the data instrument panels.
 - Don't replace real chart data with decorative sparklines or infer a cause from stage durations.
 
-## Post-deployment inspection refinement
+## Manager decision view
 
-Daily chart inspection occupies a reserved lane above the plot, follows the pointer horizontally and stays within panel bounds; keyboard inspection uses the same lane. No data/control line is obscured. The five-record incident list has no internal vertical scroll in its default view; R and +T headers retain minute units and accessible expanded names. Timestamp expansion preserves horizontal scrolling.
+The left rail pairs the six-district overview with Manager insight, replacing the longest-response list. Insight shows one evidence-backed conclusion, one large number, baseline comparison, a practical investigation link and its time scope. Priorities: daily deterioration, then a flagged time band, then chronic target failure/stability; missing comparisons stay explicitly incomplete. Dataset and district selection update insight; the shared time-band window updates band conclusions only. Hovering a date never changes the manager conclusion. No scenario-specific hardcoded conclusions or new statistical alarms.
 
-Issue #7: operator labels use Dataset 1–3, plain-language chart legends/captions, Daily p chart → Where & when → Why, and “90% arrive within”. Longest responses are contextual observations, not automatic anomalies. The daily tooltip formats only the selected day’s supplied late/n counts; missing data is never called normal.
+Daily inspection floats inside the plot with no reserved space or instruction text. Position candidates avoid the selected observation and prefer regions with fewer plotted marks/control lines. Pointer/date snapping and keyboard inspection remain available. Tooltip counts come only from the selected day’s API late/n values. The full chart height is restored.
+
+Issue #7: operator labels use Dataset 1–3, plain-language captions, Daily p chart → Where & when → Why and “90% arrive within”. Technical details remain in documentation. Desktop verification is in scope; the user explicitly excluded mobile verification for this revision.

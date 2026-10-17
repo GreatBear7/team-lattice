@@ -24,9 +24,5 @@
 .chart-empty{min-height:140px;display:grid;place-items:center;color:#667b8e;font-size:13px;text-align:center;padding:20px}
 @media(max-width:700px){.chart-legend{font-size:12px;gap:6px 10px}.chart-inspection{font-size:12px;gap:4px 10px}.chart-tooltip{font-size:12px;max-width:240px}.chart-svg-wrap{min-height:140px}}
 
-/* Inspection has its own lane: never paint the tooltip over observations or limits. */
-.daily-chart { position:relative; padding-top:88px; box-sizing:border-box; }
-.chart-tooltip-lane { position:absolute; inset:0 0 auto; height:82px; pointer-events:none; }
-.chart-tooltip-lane .chart-tooltip { right:auto; max-width:none; box-sizing:border-box; padding:8px 10px; gap:2px; font-size:12px; line-height:1.4; }
-.chart-inspection-hint { display:block; padding:12px 8px; color:#5b6c78; font-size:12px; }
-@media(max-width:760px) { .daily-chart { min-height:340px; } }
+/* Floating inspection shares the canvas; no reserved blank space. */
+.daily-chart .chart-tooltip { right:auto; max-width:none; box-sizing:border-box; padding:8px 10px; gap:3px; font-size:12px; line-height:1.4; }
