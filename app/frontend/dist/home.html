@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResponseWatch | Ambulance response quality</title>
+<meta name="description" content="ResponseWatch helps a 911 dispatch supervisor find which district, time of day and response stage is making ambulances late.">
+<style>
+:root { --ink:#223440; --muted:#5b6c78; --line:#dce3e7; --surface:#fff; --bg:#f2f5f6; --teal:#087d77; --teal-soft:#eaf5f3; --red:#bd4135; --amber:#94610f; --focus:#1267ae; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:15px; line-height:1.55; color:var(--ink); background:var(--bg); font-variant-numeric:tabular-nums; }
+a { color:var(--teal); text-underline-offset:3px; }
+a:focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
+h1,h2,h3,p { margin:0; }
+.bar { display:flex; align-items:center; gap:16px; padding:14px 24px; background:var(--surface); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:9px; font-weight:700; font-size:19px; letter-spacing:-.02em; color:var(--ink); text-decoration:none; }
+.brand .mark { display:grid; place-items:center; width:30px; height:30px; border-radius:7px; background:var(--teal); color:#fff; }
+.brand .soft { color:#4d6470; font-weight:600; }
+.bar nav { margin-left:auto; display:flex; gap:4px; }
+.bar nav a { padding:6px 10px; border-radius:6px; color:var(--muted); font-size:14px; text-decoration:none; }
+.bar nav a:hover, .bar nav a[aria-current] { color:#096e69; background:var(--teal-soft); }
+main { max-width:1040px; margin:0 auto; padding:0 24px 48px; }
+.hero { padding:96px 0 56px; }
+.eyebrow { font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--teal); }
+.hero h1 { margin-top:10px; font-size:clamp(28px,4.4vw,42px); line-height:1.15; letter-spacing:-.03em; max-width:780px; }
+.hero p.lead { margin-top:16px; max-width:560px; font-size:18px; color:#3c4f5b; }
+.cta { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+.btn { display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:7px; font-weight:600; text-decoration:none; border:1px solid transparent; }
+.btn.primary { background:var(--teal); color:#fff; }
+.btn.primary:hover { background:#066a65; }
+.btn.secondary { background:var(--surface); color:var(--ink); border-color:#c9d3d9; }
+.btn.secondary:hover { border-color:#718f95; }
+section { margin-top:36px; }
+section > h2 { font-size:20px; letter-spacing:-.02em; }
+section > p.sub { margin-top:4px; color:var(--muted); }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:16px; }
+.card { padding:18px; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+.card h3 { font-size:15px; }
+.card p { margin-top:4px; font-size:14px; color:#3c4f5b; }
+.card .tag { display:inline-block; margin-bottom:8px; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; background:var(--teal-soft); color:#096e69; }
+.card .tag.red { background:#fbeceb; color:var(--red); }
+.card .tag.grey { background:#eef2f4; color:var(--muted); }
+.steps { counter-reset:step; display:grid; gap:10px; margin-top:16px; padding:0; list-style:none; }
+.steps li { position:relative; padding:14px 16px 14px 54px; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+.steps li::before { counter-increment:step; content:counter(step); position:absolute; left:16px; top:13px; display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--teal); color:#fff; font-size:13px; font-weight:700; }
+.note { margin-top:36px; padding:14px 16px; border-left:3px solid var(--amber); background:#fdf7ec; border-radius:0 8px 8px 0; font-size:14px; }
+footer { max-width:1040px; margin:0 auto; padding:20px 24px 32px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 18px; }
+@media (max-width:600px) { .bar { padding:12px 16px; } .bar nav a { padding:6px 7px; } main { padding:0 16px 40px; } .hero { padding:36px 0 24px; } footer { padding:18px 16px 28px; } }
+
+/* heartbeat: the logo trace draws itself like a monitor, then rests */
+.mark .beat { stroke-dasharray:100; stroke-dashoffset:100; animation:beat 2.4s ease-in-out infinite; }
+@keyframes beat { 0% { stroke-dashoffset:100; } 45%,75% { stroke-dashoffset:0; opacity:1; } 100% { stroke-dashoffset:0; opacity:0; } }
+@media (prefers-reduced-motion:reduce) { .mark .beat, .ecg .sweep { animation:none; stroke-dashoffset:0; opacity:1; } .ecg .sweep { display:none; } }
+
+/* hero ECG strip: faint full trace plus a bright segment sweeping across */
+.ecg { display:block; width:100%; max-width:720px; height:64px; margin-top:28px; overflow:visible; }
+.ecg path { fill:none; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+.ecg .base { stroke:#bfdcd8; stroke-width:1.5; }
+.ecg .sweep { stroke:var(--teal); stroke-width:2.5; stroke-dasharray:14 86; stroke-dashoffset:100; animation:sweep 3.2s linear infinite; filter:drop-shadow(0 0 3px rgba(8,125,119,.45)); }
+@keyframes sweep { to { stroke-dashoffset:0; } }
+</style>
+</head>
+<body id="home">
+<header class="bar">
+  <a class="brand" href="./" aria-label="ResponseWatch home"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="beat" pathLength="100" d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg></span><span>Response<span class="soft">Watch</span></span></a>
+  <nav aria-label="Pages"><a href="./" aria-current="page">Home</a><a href="app">Dashboard</a><a href="guide">Guide</a><a href="docs">API</a></nav>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Find where and when ambulances are late.</h1>
+    <p class="lead">Control charts for every district, a time-of-day check and the slowest calls, for a 911 dispatch supervisor reviewing completed calls.</p>
+    <svg class="ecg" viewBox="0 0 720 64" aria-hidden="true" focusable="false"><path class="base" d="M0 40 H48 l6 -4 l6 4 l7 0 l4 7 l7 -37 l7 36 l5 -6 l10 0 l9 -6 l12 6 H176 l6 -3 l6 3 l7 0 l4 5 l7 -29 l7 28 l5 -4 l10 0 l9 -7 l14 7 H286 l6 -5 l6 5 l7 0 l4 8 l7 -42 l7 41 l5 -7 l10 0 l9 -5 l11 5 H430 l6 -3 l6 3 l7 0 l4 6 l7 -33 l7 32 l5 -5 l10 0 l9 -8 l15 8 H548 l6 -4 l6 4 l7 0 l4 7 l7 -38 l7 37 l5 -6 l10 0 l9 -6 l12 6 H720"/><path class="sweep" pathLength="100" d="M0 40 H48 l6 -4 l6 4 l7 0 l4 7 l7 -37 l7 36 l5 -6 l10 0 l9 -6 l12 6 H176 l6 -3 l6 3 l7 0 l4 5 l7 -29 l7 28 l5 -4 l10 0 l9 -7 l14 7 H286 l6 -5 l6 5 l7 0 l4 8 l7 -42 l7 41 l5 -7 l10 0 l9 -5 l11 5 H430 l6 -3 l6 3 l7 0 l4 6 l7 -33 l7 32 l5 -5 l10 0 l9 -8 l15 8 H548 l6 -4 l6 4 l7 0 l4 7 l7 -38 l7 37 l5 -6 l10 0 l9 -6 l12 6 H720"/></svg>
+    <div class="cta">
+      <a class="btn primary" href="app">Open the dashboard →</a>
+      <a class="btn secondary" href="guide">Read the guide</a>
+    </div>
+  </div>
+
+  <section aria-labelledby="what">
+    <h2 id="what">What it does</h2>
+    <div class="grid">
+      <div class="card"><h3>Flags bad days</h3><p>A daily p chart per district shows when its late rate rises above its own normal.</p></div>
+      <div class="card"><h3>Finds bad hours</h3><p>A time-of-day test catches delays confined to a few hours that daily rates hide.</p></div>
+      <div class="card"><h3>Shows the worst calls</h3><p>The slowest responses and the slow stage (dispatch, crew or travel) stay visible.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>Synthetic data · not a live dispatch feed · team-lattice, Cornell Six Sigma Hackathon 2026</span>
+  <a href="https://github.com/GreatBear7/team-lattice">Source on GitHub</a>
+</footer>
+</body>
+</html>
