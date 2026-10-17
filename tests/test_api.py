@@ -647,18 +647,9 @@ def test_root_serves_built_ui_or_api_info():
     assert r.status_code == 200
     if (api.DIST / "index.html").is_file():
         assert "text/html" in r.headers["content-type"]
-        assert 'id="home"' in r.text  # landing page; the dashboard lives at /app
+        assert '<div id="root">' in r.text
     else:
         assert r.json()["name"] == "ResponseWatch API"
-
-
-def test_dashboard_and_guide_pages():
-    if not (api.DIST / "index.html").is_file():
-        pytest.skip("front end not built")
-    r = client.get("/app")
-    assert r.status_code == 200 and '<div id="root">' in r.text
-    r = client.get("/guide")
-    assert r.status_code == 200 and 'id="guide"' in r.text
 
 
 # =====================================================================
