@@ -45,7 +45,7 @@ tasks:
   - id: H-02
     title: Two or three test datasets plus a codebook
     points: "10 - Tool Documentation: 2-3 working test datasets (5), codebook and README for the data (5)"
-    status: in_progress
+    status: done
     owner: "Kaushik Chivukula (A, data lead)"
     started_at: "2026-10-16 17:30"
     owns: ["data/"]
@@ -53,7 +53,7 @@ tasks:
       ls data/*.csv lists 2 or 3 files (e.g. in control, planted shift, edge
       case), and data/README.md names every one of them and describes every
       column with units and how the data would be collected for real.
-    result: ""
+    result: "ls data/*.csv lists normal.csv, recovery.csv, morning_tail.csv (16,800 rows each, seed 5300, byte-reproducible); data/README.md names all three and documents all 9 columns with units, generation, realized baselines, limits and real CAD/NEMSIS collection."
 
   - id: H-03
     title: Core QC statistic as one plain, tested function
