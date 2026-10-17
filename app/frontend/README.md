@@ -15,9 +15,9 @@ Open the printed local URL in a full browser window. Desktop 1280×720 and large
 
 ## Operator flow
 
-1. Choose **Normal operations**, **Recovery · Zone C**, or **Morning tail · Zone D**. The initially selected zone and tab derive from supplied daily/band results, never `scenario_truth.json`.
-2. Inspect the selected zone in the large right instrument. **Where & when** shows a six-zone × 24-hour heatmap or five pooled time bands. **Daily p chart** exposes frozen-baseline limits, date inspection and a cohort table. **Delay stages** compares separate baseline/monitoring medians and P90s.
-3. Keep service acceptability, statistical change and severity separate: amber late rates exceed q; the Change column distinguishes daily and exploratory band signals; severe individual incidents remain visible without a flag. Incident IDs select their zone. All/selected-zone scope and timestamps are local to the incident table.
+1. Choose **Normal operations**, **Recovery**, or **Morning tail**. Each of the three direct buttons contains all six zones; Recovery changes C and restores it, Morning tail concentrates severe delays in D at06–10. The initially selected zone and tab derive from supplied daily/band results, never `scenario_truth.json`.
+2. Inspect the selected zone in the large right instrument. **Where & when** shows a six-zone × 24-hour heatmap, a six-ring24-hour clock, or five pooled time bands. **Daily p chart** exposes frozen-baseline limits, nearest-date inspection anywhere across the plot, keyboard inspection and a cohort table. **Delay stages** compares separate baseline/monitoring medians and P90s.
+3. Keep service acceptability, statistical change and severity separate: amber late rates exceed q; the Change column distinguishes daily and exploratory band signals; severe individual incidents remain visible without a flag. Incident IDs select their zone. All/selected-zone scope uses two direct buttons; timestamps remain local to the incident table.
 4. **Preview data / API data** opens source settings and interpretation. API mode adds CSV upload, visible request errors and row/field validation errors. No API error falls back to preview data.
 
 The 7/14-day window and raw/circular 3-hour aggregation affect **time-of-day views only**. Other summary figures, daily chart, stages and incidents stay on the full 14-day monitoring period. Baseline is always frozen. Black outlines use supplied same-window band flags; hourly colors are descriptive on a fixed ±25 percentage-point scale. Grey hatch preserves missing/insufficient evidence, including a real zero change with insufficient status. Three-hour readouts name the pooled hours.
@@ -26,12 +26,12 @@ The 7/14-day window and raw/circular 3-hour aggregation affect **time-of-day vie
 
 `src/mocks/{normal,recovery,morning_tail}.json` each contain `{summary, analyses: {A,...,F}, hourly_views}`. Four hourly variants (`14_1`, `7_1`, `14_3`, `7_3`) are precomputed, not calculated in the browser. `source.json` records Git object IDs and SHA-256 input hashes.
 
-- Verified merged dev: `f6a1e5264e79fad547806cc7697893e9ff770263`.
+- Verified merged dev: `88890e4518089fcb58ec88341d7a64c9743fde24`.
 - Data last change: `9853338b31dcc761860ede9b549208029c877251`.
-- Statistics last change: `f8b0641be25270d0ea84bd46f024f2def801f194`.
+- Statistics last change: `149cfbb0917d849937067e05dfd9944c3fe7b46e`.
 - Each CSV: 16,800 complete high-priority incidents; 8,400 shared baseline incidents Sep14–27 and 8,400 monitoring incidents Sep28–Oct11, six functional zones. A/B downtown; C/D residential; E/F outer. Fixed seed5300.
-- Normal: no daily flags; C's evening band has an exploratory chance signal. Recovery: C flags Oct1–6, then returns below daily limits; historical and pooled flags remain. Morning tail: no daily flags, D's morning band is flagged (37.1% versus17.9% baseline, UCL24.9%); longest response41.6min. B–F are above q in all three datasets.
-- Reconciled all18 zone/scenario views and daily/band counts; all12 hourly variants have144 cells. Raw views have44 insufficient cells; pooled3-hour views have none. No frontend statistical formulas, X-bar/S chart, clock, causal inference or incident-write API is invented.
+- Normal: no daily or pooled-band flags with H-11. Recovery: C flags Oct1–6, then returns below daily limits; historical and pooled flags remain. Morning tail: no daily flags, D's morning band is flagged (37.1% versus17.9% baseline, UCL28.7%); longest response41.6min. B–F are above q in all three datasets.
+- Reconciled all18 zone/scenario views and daily/band counts; all12 hourly variants have144 cells. Raw views have44 insufficient cells; pooled3-hour views have none. No frontend statistical formulas, X-bar/S chart, causal inference or incident-write API is invented.
 
 The previous `hidden_tail` fixture and manually authored API mock numbers are superseded for this frontend. The team API contract remains unchanged. A's codebook is now present on dev.
 
@@ -51,4 +51,18 @@ D owns actual validation/statistics execution, dataset isolation, FastAPI routes
 
 ## Validation
 
-62 Vitest assertions/tests cover client requests, cancellation, malformed/failed HTTP responses, multipart upload, immutable fixtures, frozen baseline, counts, independent signals, P90, heatmap evidence masks and keyboard structure. Production build passes. Browser checks cover all three scenarios, 7/14-day and1/3-hour views, keyboard heatmap selection, charts/tables, source mode, CSV422 and API503. Source tests and the smoke harness do not claim B's complete pytest suite ran in this frontend session.
+69 Vitest tests cover client requests, cancellation, malformed/failed HTTP responses, multipart upload, immutable fixtures, frozen baseline, counts, independent signals, P90, heatmap evidence masks and keyboard structure. Production build passes. Browser checks cover all three scenarios, 7/14-day and1/3-hour views, grid/clock keyboard selection, whole-plot date hover, charts/tables, source mode, CSV422 and API503. Source tests and the smoke harness do not claim B's complete pytest suite ran in this frontend session.
+
+## Refresh preview data after B changes statistics
+
+```bash
+git fetch origin
+python3 app/frontend/scripts/generate-fixtures.py
+npm --prefix app/frontend test
+```
+
+The portable adapter calls unchanged functions in `app/qc.py`; it does not implement statistics. It verifies current data/QC bytes against `origin/dev`, regenerates the four JSON files, and records exact Git blob/SHA256 provenance. H-11 uses a pooled two-proportion z test for bands (`z > 3`); daily p-chart rules are unchanged. Both 7-day and14-day band limits come from B. Displayed stage changes use unrounded durations before display rounding.
+
+## C completion and D handoff
+
+The `frontend` branch includes latest dev through88890e4 and retains C’s185fbab changes (no summary banner; stage comparison chart). C’s H-04 interface/API-client sub-scope is complete after the listed checks. D still owns the real backend, testme, dataset isolation and public deployment; the backup backend branch is not silently merged into this frontend. The full H-04 stays in progress until those checks pass.

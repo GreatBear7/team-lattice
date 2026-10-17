@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T00:36:48.790445+00:00",
+  "generatedAt": "2026-10-17T05:29:02.085612+00:00",
   "title": "Design System: ResponseWatch",
   "extensions": {
     "colorMeta": {
@@ -378,13 +378,54 @@
           "oklch(83.57% 0.01269 244.25)",
           "oklch(95.00% 0.01269 244.25)"
         ]
+      },
+      "hourly-neutral": {
+        "role": "neutral",
+        "displayName": "Hourly Zero Change",
+        "canonical": "#f5f7f9",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
+      },
+      "hourly-unavailable": {
+        "role": "neutral",
+        "displayName": "Hourly Unavailable Evidence",
+        "canonical": "#e5eaee",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
+      },
+      "band-outline": {
+        "role": "neutral",
+        "displayName": "Supplied Band Outline",
+        "canonical": "#17242e",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
       }
     },
     "typographyMeta": {
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Compact summary title."
-      },
       "title": {
         "displayName": "Title",
         "purpose": "Repeated instrument headings."
@@ -416,6 +457,11 @@
         "name": "chart-inspection",
         "value": "0 5px 14px #18324724",
         "purpose": "Transient daily chart tooltip."
+      },
+      {
+        "name": "segmented-selection",
+        "value": "0 1px 3px #22344020",
+        "purpose": "Active local segmented control, not resting panel elevation."
       }
     ],
     "motion": [
@@ -464,7 +510,7 @@
       "refersTo": "button-primary",
       "description": "Solid action used to retry a failed scenario load.",
       "html": "<button class=\"ds-retry\">Retry loading</button>",
-      "css": ".ds-retry{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;border:0;cursor:pointer;background:var(--teal,#087d77);color:var(--surface,#fff);padding:9px 15px;border-radius:5px;}.ds-retry:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}.ds-retry:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-retry{animation:none!important}}"
+      "css": ".ds-retry{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;border:0;cursor:pointer;background:var(--teal,#087d77);color:var(--surface,#fff);padding:8px 13px;border-radius:5px;}.ds-retry:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}.ds-retry:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-retry{animation:none!important}}.ds-retry:hover{background:#066a65}"
     },
     {
       "name": "Text Action",
@@ -475,27 +521,19 @@
       "css": ".ds-text-action{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:17px;font-weight:600;color:#096e69;padding:3px 0;white-space:nowrap}.ds-text-action:hover{text-decoration:underline;text-underline-offset:3px}.ds-text-action:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}"
     },
     {
-      "name": "Help Button",
-      "kind": "button",
-      "refersTo": "button-help",
-      "description": "Compact icon action for dashboard reading guidance.",
-      "html": "<button class=\"ds-help\" aria-label=\"How to read this dashboard\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6M12 7h.01\"/></svg></button>",
-      "css": ".ds-help{display:grid;place-items:center;width:30px;height:30px;border:0;background:none;cursor:pointer;border-radius:5px;color:var(--muted,#5b6c78);}.ds-help:hover{background:#e4f0ee;color:#066e69}.ds-help:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-help{animation:none!important}}"
-    },
-    {
-      "name": "Scenario Select",
+      "name": "Local Native Fields",
       "kind": "input",
       "refersTo": "select",
-      "description": "Native selector with the implemented compact field treatment.",
-      "html": "<label class=\"ds-select-label\">Scenario <select class=\"ds-select\"><option>Hidden tail</option><option>Normal</option><option>Recovery</option></select></label>",
-      "css": ".ds-select-label{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;display:flex;align-items:center;gap:9px;color:var(--muted,#5b6c78);font-size:12px}.ds-select{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;height:30px;padding:0 27px 0 9px;background:var(--surface,#fff);color:var(--ink,#223440);border:1px solid #c9d3d9;border-radius:5px;font-weight:550;accent-color:var(--teal,#087d77);}.ds-select:hover{border-color:#718f95}.ds-select:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-select{animation:none!important}.ds-select-label{animation:none!important}}"
+      "description": "Local time-of-day selectors and data-source connection fields.",
+      "html": "<label class=\"ds-select-label\">Window <select class=\"ds-select\"><option>14 days</option><option>Latest 7</option></select></label><label class=\"ds-select-label\">API URL <input class=\"ds-input\" type=\"url\" placeholder=\"API base URL\"></label>",
+      "css": ".ds-select-label{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;display:flex;align-items:center;gap:9px;color:var(--muted,#5b6c78);font-size:12px}.ds-select{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;height:30px;padding:0 27px 0 9px;background:var(--surface,#fff);color:var(--ink,#223440);border:1px solid #c9d3d9;border-radius:5px;font-weight:550;accent-color:var(--teal,#087d77);}.ds-select:hover{border-color:#718f95}.ds-select:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-select{animation:none!important}.ds-select-label{animation:none!important}}.ds-input{font:inherit;height:31px;padding:5px 8px;border:1px solid #c9d3d9;border-radius:5px;background:#fff;color:#223440;caret-color:#087d77}.ds-input:focus-visible{outline:2px solid #1267ae;outline-offset:2px}.ds-input:disabled{color:#5b6c78;background:#f5f7f8}"
     },
     {
       "name": "Local Analysis Tabs",
       "kind": "nav",
       "refersTo": "analysis-tab-active",
       "description": "Local views of the same selected zone.",
-      "html": "<div class=\"ds-analysis-tabs\" role=\"tablist\" aria-label=\"Selected-zone analysis\"><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"true\">Daily trend</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Time of day</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Delay stages</button></div>",
+      "html": "<div class=\"ds-analysis-tabs\" role=\"tablist\" aria-label=\"Selected-zone analysis\"><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"true\">Where &amp; when</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Daily p chart</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Delay stages</button></div>",
       "css": ".ds-analysis-tabs{display:flex;align-items:center;gap:2px;min-height:36px;padding:0 14px;border-bottom:1px solid var(--line,#dce3e7)}.ds-analysis-tab{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;align-self:stretch;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;padding:0 10px;color:var(--muted,#5b6c78);font-size:12px;font-weight:550;white-space:nowrap}.ds-analysis-tab:first-child{padding-left:0;padding-right:12px}.ds-analysis-tab:hover{color:var(--ink,#223440);background:#f5f9f9}.ds-analysis-tab[aria-selected=\"true\"]{color:#066e69;border-bottom-color:var(--teal,#087d77)}.ds-analysis-tab:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}"
     },
     {
@@ -518,17 +556,33 @@
       "name": "Selected Zone Table Row",
       "kind": "custom",
       "refersTo": "zone-row-selected",
-      "description": "Selected table row with a keyboard-accessible identity-cell button. Preview values are illustrative.",
-      "html": "<table class=\"ds-zone-table\"><thead><tr><th>Zone</th><th>Late</th><th>P90</th><th>Signal</th></tr></thead><tbody><tr class=\"ds-zone-selected\"><td><button class=\"ds-zone-select\" aria-pressed=\"true\" aria-label=\"Inspect zone C, Residential\"><span class=\"ds-zone-label\"><span class=\"ds-zone-letter\">C</span><span>Residential</span></span></button></td><td class=\"ds-numeric ds-target\">16.4%</td><td class=\"ds-numeric\">14.2</td><td class=\"ds-signal\">4 days</td></tr></tbody></table>",
+      "description": "Selected table row with a keyboard-accessible identity-cell button; values come from supplied evidence.",
+      "html": "<table class=\"ds-zone-table\"><thead><tr><th>Zone</th><th>Late</th><th>P90</th><th>Change</th></tr></thead><tbody><tr class=\"ds-zone-selected\"><td><button class=\"ds-zone-select\" aria-pressed=\"true\" aria-label=\"Inspect zone C, Residential\"><span class=\"ds-zone-label\"><span class=\"ds-zone-letter\">C</span><span>Residential</span></span></button></td><td class=\"ds-numeric ds-target\">\u2014</td><td class=\"ds-numeric\">\u2014</td><td class=\"ds-signal\">\u2014</td></tr></tbody></table>",
       "css": ".ds-zone-table{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;width:100%;border-collapse:collapse;text-align:left;color:var(--ink,#223440)}.ds-zone-table th{padding:5px 8px;border-bottom:1px solid var(--line,#dce3e7);background:#f8fafb;color:var(--muted,#5b6c78);font-size:12px;font-weight:550}.ds-zone-table td{height:42px;padding:4px 8px;font-size:12px}.ds-zone-selected{background:#eaf5f3;box-shadow:inset 0 0 0 1px #a2cec7}.ds-zone-select{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;display:block;width:100%;min-height:28px;padding:0;border:0;border-radius:3px;background:none;color:inherit;text-align:left;cursor:pointer}.ds-zone-select:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}.ds-zone-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:550}.ds-zone-letter{width:24px;height:26px;display:grid;place-items:center;flex-shrink:0;border-radius:5px;border:1px solid var(--teal,#087d77);background:var(--teal,#087d77);color:white;font-size:13px;font-weight:700}.ds-numeric{text-align:right;font-weight:600}.ds-target{color:var(--amber,#94610f)}.ds-signal{color:#b1392e;font-weight:550}"
     },
     {
       "name": "Chart Inspection Tooltip",
       "kind": "custom",
       "refersTo": "chart-tooltip",
-      "description": "Floating values shown while inspecting daily evidence.",
-      "html": "<div class=\"ds-tooltip\" role=\"status\"><strong>Oct 1 \u00b7 monitoring</strong><span>Late rate 16.0% \u00b7 16 / 100 calls</span><span>UCL 15.7% \u00b7 LCL 0.3%</span><span>Upper-limit signal</span></div>",
+      "description": "Nearest-date inspection anywhere across the horizontal daily plot; also available through point focus.",
+      "html": "<div class=\"ds-tooltip\" role=\"status\"><strong>Selected date \u00b7 monitoring</strong><span>Late rate \u00b7 supplied value and call counts</span><span>UCL / LCL \u00b7 supplied limits</span><span>Supplied evidence status</span></div>",
       "css": ".ds-tooltip{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;display:flex;flex-direction:column;gap:4px;background:#183247;color:#edf5fc;border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.4;box-shadow:0 5px 14px #18324724;max-width:280px}.ds-tooltip strong{font-weight:650;color:white}@media(prefers-reduced-motion:reduce){.ds-tooltip{animation:none!important}}"
+    },
+    {
+      "name": "Direct Scenario Choice",
+      "kind": "button",
+      "refersTo": "scenario-choice-active",
+      "description": "A named scenario with its explanation and explicit pressed state.",
+      "html": "<button class=\"ds-scenario\" aria-pressed=\"true\"><strong>Scenario</strong><span>All six districts \u00b7 supplied evidence</span></button>",
+      "css": ".ds-scenario{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:9px 12px;border:1px solid #d5dfe2;border-radius:6px;text-align:left;background:#fff;color:#223440;cursor:pointer}.ds-scenario strong{font-size:12px;line-height:17px;font-weight:600}.ds-scenario span{font-size:10px;line-height:14px;color:#5b6c78}.ds-scenario:hover{background:#f4f9f8;border-color:#94b9b3}.ds-scenario[aria-pressed=true]{background:#eaf5f3;border-color:#087d77;box-shadow:inset 0 0 0 1px #087d77}.ds-scenario[aria-pressed=true] strong{color:#066a65}.ds-scenario:focus-visible{outline:2px solid #1267ae;outline-offset:3px}"
+    },
+    {
+      "name": "Local Segmented Scope",
+      "kind": "button",
+      "refersTo": "segmented-active",
+      "description": "Direct incident scope buttons; the same control language switches hourly display.",
+      "html": "<div class=\"ds-segmented\" role=\"group\" aria-label=\"Incident scope\"><button aria-pressed=\"true\">All zones</button><button aria-pressed=\"false\">Selected zone</button></div>",
+      "css": ".ds-segmented{display:inline-flex;padding:2px;border:1px solid #dce3e7;border-radius:5px;background:#f4f7f8}.ds-segmented button{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;padding:5px 9px;border:0;border-radius:3px;background:none;font-size:12px;color:#5b6c78;cursor:pointer}.ds-segmented button[aria-pressed=true]{color:#096e69;background:#fff;box-shadow:0 1px 3px #22344020;font-weight:650}.ds-segmented button:hover{color:#096e69}.ds-segmented button:focus-visible{outline:2px solid #1267ae;outline-offset:3px}"
     }
   ],
   "narrative": {
@@ -553,7 +607,7 @@
       },
       {
         "name": "Flat Instruments",
-        "body": "Resting panels use a seam border. Reserve the floating shadow for the chart inspection tooltip; selection uses an inset outline.",
+        "body": "Resting panels use a seam border. Reserve floating shadows for transient inspection and active segmented controls; district selection uses an inset outline.",
         "section": "elevation"
       }
     ],

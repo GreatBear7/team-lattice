@@ -49,6 +49,12 @@ function pointDescription(point) {
   return `${dateLabel(point.date)}. ${point.phase}. Late ${integer(point.late)} of ${integer(point.n)}; ${percent(point.p)}. Upper limit ${percent(point.ucl)}. ${signal}.`
 }
 
+export function nearestDateIndex(localX, left, plotWidth, count) {
+  if (count < 1) return null
+  if (count === 1 || plotWidth <= 0) return 0
+  return Math.max(0, Math.min(count - 1, Math.round((localX - left) / plotWidth * (count - 1))))
+}
+
 export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact = false }) {
   const descriptionId = useId()
   const [active, setActive] = useState(null)
@@ -68,13 +74,19 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
   const boundary = monitoringIndex < 0 ? margin.left + pw : monitoringIndex === 0 ? margin.left : x(monitoringIndex) - step / 2
   const selectedIndex = points.findIndex(point => point.date === selectedDate)
   const activePoint = active == null ? null : points[active]
+  function inspectPointer(event) {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    if (!bounds.width || event.pointerType === 'touch') return
+    const index = nearestDateIndex((event.clientX - bounds.left) * w / bounds.width, margin.left, pw, points.length)
+    setActive(index)
+  }
   const ticks = Array.from({ length: 5 }, (_, index) => ymax * index / 4)
   const dateIndices = [...new Set([0, Math.round((points.length - 1) / 4), Math.round((points.length - 1) / 2), Math.round((points.length - 1) * .75), points.length - 1])]
 
   return <div className={`daily-chart ${compact ? 'chart-compact' : ''}`}>
     <div className="chart-svg-wrap" ref={plotRef}>
-      <svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="group" aria-label="Daily late-rate p control chart" aria-describedby={descriptionId}>
-        <desc id={descriptionId}>Daily late rates with frozen historical baseline and supplied upper and lower control limits. Baseline dates are shaded. Red triangles indicate monitoring days flagged by the statistical service. Select an observation to inspect its values.</desc>
+      <svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="group" aria-label="Daily late-rate p control chart" aria-describedby={descriptionId} onPointerMove={inspectPointer} onPointerLeave={() => setActive(null)}>
+        <desc id={descriptionId}>Daily late rates with frozen historical baseline and supplied upper and lower control limits. Baseline dates are shaded. Red triangles indicate monitoring days flagged by the statistical service. Move anywhere across the plot to inspect the nearest date, or focus a point and use arrow keys.</desc>
         <rect x={margin.left} y={margin.top} width={Math.max(0, boundary - margin.left)} height={ph} fill="#f0f4f7" />
         {selectedIndex >= 0 && <rect className="chart-date-selection" x={Math.max(margin.left, x(selectedIndex) - step / 2)} y={margin.top} width={Math.min(step, pw)} height={ph} fill="#dce9fa" opacity=".65" />}
         {ticks.map(value => <g key={value} aria-hidden="true"><line x1={margin.left} y1={y(value)} x2={w - margin.right} y2={y(value)} stroke={palette.grid} /><text x={margin.left - 9} y={y(value) + 4} textAnchor="end" className="chart-axis-label">{Math.round(value * 100)}%</text></g>)}
@@ -84,10 +96,11 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         {['ucl', 'lcl'].map(key => paths(points, point => point[key], x, y).map((path, index) => <path key={`${key}-${index}`} d={path} fill="none" stroke={palette.amber} strokeWidth="1.3" strokeDasharray="6 4" />))}
         {paths(points, point => finite(point.cl) ? point.cl : chart.p0, x, y).map((path, index) => <path key={`cl-${index}`} d={path} fill="none" stroke={palette.teal} strokeWidth="1.6" />)}
         {paths(points, point => point.p, x, y).map((path, index) => <path key={`p-${index}`} d={path} fill="none" stroke={palette.blue} strokeWidth="1.7" strokeLinejoin="round" />)}
+        {activePoint && <line className="chart-crosshair" x1={x(active)} x2={x(active)} y1={margin.top} y2={h - margin.bottom} stroke="#486579" strokeDasharray="3 3" pointerEvents="none" />}
         {points.map((point, index) => {
           const px = x(index), py = finite(point.p) ? y(point.p) : y(0)
           const isFlagged = point.deterioration_flag === true
-          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => setActive(index)} onBlur={() => setActive(null)} onMouseEnter={() => setActive(index)} onMouseLeave={() => setActive(null)} onClick={() => onSelectDate?.(point.date)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
+          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => setActive(index)} onBlur={() => setActive(null)} onClick={() => onSelectDate?.(point.date)} onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const next = Math.max(0, Math.min(points.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1))); event.currentTarget.parentElement.querySelectorAll('.chart-point')[next]?.focus(); return } if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
             <title>{pointDescription(point)}</title>
             <circle cx={px} cy={py} r="11" fill="transparent" className="chart-point-hit" />
             {finite(point.p) ? isFlagged ? <path d={`M${px},${py - 5.4} L${px + 5.2},${py + 4.1} L${px - 5.2},${py + 4.1} Z`} fill={palette.red} stroke="#fff" strokeWidth="1.2" /> : <circle cx={px} cy={py} r={selectedDate === point.date ? 4.5 : 3.2} fill={palette.blue} stroke="#fff" strokeWidth="1.2" /> : <path d={`M${px - 3},${py - 3}l6,6m0,-6l-6,6`} stroke={palette.muted} />}
@@ -95,7 +108,7 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         })}
         {dateIndices.map(index => <text key={index} x={x(index)} y={h - 9} textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'} className="chart-axis-label">{dateLabel(points[index].date)}</text>)}
       </svg>
-      {activePoint && <div className="chart-tooltip" role="status"><strong>{dateLabel(activePoint.date)} · {activePoint.phase}</strong><span>Late rate {percent(activePoint.p)} · {integer(activePoint.late)} / {integer(activePoint.n)} calls</span><span>UCL {percent(activePoint.ucl)} · LCL {percent(activePoint.lcl)}</span><span>{activePoint.status !== 'ok' ? 'Insufficient evidence' : activePoint.deterioration_flag === true ? 'Upper-limit signal' : activePoint.phase === 'baseline' ? 'Baseline observation' : 'No upper-limit signal'}</span></div>}
+      {activePoint && <div className="chart-tooltip" role="status"><strong>{dateLabel(activePoint.date)} · {activePoint.phase}</strong><span>Late rate {percent(activePoint.p)} · {integer(activePoint.late)} / {integer(activePoint.n)} calls</span><span>UCL {percent(activePoint.ucl)} · LCL {percent(activePoint.lcl)}</span><span>{activePoint.status !== 'ok' || (activePoint.phase !== 'baseline' && activePoint.deterioration_flag == null) ? 'Evidence unavailable' : activePoint.deterioration_flag === true ? 'Upper-limit signal' : activePoint.phase === 'baseline' ? 'Baseline observation' : 'No upper-limit signal'}</span></div>}
     </div>
   </div>
 }

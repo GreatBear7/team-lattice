@@ -31,3 +31,14 @@
 .hour-empty span{max-width:52ch}
 .hour-heatmap ::selection{background:#dce9fa;color:#223440}
 @media(max-width:700px){.hour-heatmap{min-height:380px}.hour-legend{gap:7px 14px}.hour-tooltip{top:78px;right:8px;max-width:250px}.hour-readout-values{gap:3px 10px}.hour-chart-notes{font-size:12px}}
+.hour-selection-key{color:#066e69;font-weight:600}
+.hour-clock .hour-plot-frame{min-width:320px}
+.hour-clock .hour-plot-scroll{overflow:hidden;min-height:300px}
+.hour-clock .hour-plot-frame,.hour-clock .hour-plot{min-height:300px}
+.hour-clock .hour-plot{touch-action:pan-y}
+.clock-center-zone{font-family:inherit;font-size:27px;font-weight:650;fill:#066e69}
+.clock-zone-key{display:flex;justify-content:center;align-items:center;gap:7px;font-size:11px;color:#5b6c78;flex-shrink:0}
+.clock-zone-key button{width:25px;height:24px;border:1px solid #d4dfe2;border-radius:4px;background:#fff;color:#223440;font-size:12px}
+.clock-zone-key button[aria-pressed=true]{background:#087d77;color:#fff;border-color:#087d77}
+.where-content>.hour-clock{min-height:422px}
+@media(max-width:760px){.where-content>.hour-clock{min-height:480px}.hour-clock .hour-plot-frame,.hour-clock .hour-plot-scroll,.hour-clock .hour-plot{min-height:310px}.clock-zone-key{gap:6px}}

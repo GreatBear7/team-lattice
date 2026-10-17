@@ -20,7 +20,7 @@ Four-person Cornell SYSEN 5300 hackathon team. A owns data, B statistics, C fron
 
 ## Capabilities and Constraints
 
-Three reproducible synthetic CSVs: normal, recovery, morning_tail merged into dev f6a1e52. Six functional zones: A/B downtown, C/D residential, E/F outer. High priority, 14-day frozen baseline followed by 14 monitoring days. Demo T=12 minutes and allowed late rate q=10%, not clinical standards. Daily zone p chart is primary; five pooled time bands exploratory; stage medians and P90 descriptive; slowest five completed incidents remain visible independently of flags. Above-target and own-baseline deterioration are separate. Null is unavailable, never zero or normal. No frontend statistical formulas. B's tested functions supply precomputed mock fixtures. No live incident writes, dispatcher ranking, maps, database or causal diagnosis in this redesign. The adopted hourly heatmap compares six zones across 24 local hours, with 7/14-day views and raw/circular 3-hour pooling. Black outlines reflect supplied five-band signals; grey cells preserve limited evidence. X-bar/S remains outside the merged production statistics.
+Three reproducible synthetic CSVs: normal, recovery, morning_tail merged into dev 88890e4. Six functional zones: A/B downtown, C/D residential, E/F outer. High priority, 14-day frozen baseline followed by 14 monitoring days. Demo T=12 minutes and allowed late rate q=10%, not clinical standards. Daily zone p chart is primary; five pooled time bands exploratory; stage medians and P90 descriptive; slowest five completed incidents remain visible independently of flags. Above-target and own-baseline deterioration are separate. Null is unavailable, never zero or normal. No frontend statistical formulas. B's tested functions supply precomputed mock fixtures. No live incident writes, dispatcher ranking, maps, database or causal diagnosis in this redesign. The adopted hourly heatmap compares six zones across 24 local hours, with 7/14-day views and raw/circular 3-hour pooling. Black outlines reflect supplied five-band signals; grey cells preserve limited evidence. X-bar/S remains outside the merged production statistics.
 
 ## Brand Commitments
 
@@ -28,7 +28,7 @@ Existing product name ResponseWatch. English operator interface. Calm, factual o
 
 ## Evidence on Hand
 
-Merged dev f6a1e52: data 9853338, statistics f8b0641; adopted bilingual Final_Plan; current API contract and generated fixtures verified against Git objects. Mock fixtures must disclose their synthetic nature and source revisions.
+Merged dev 88890e4: data 9853338, statistics 149cfbb; adopted bilingual Final_Plan; current API contract and generated fixtures verified against Git objects. Mock fixtures must disclose their synthetic nature and source revisions.
 
 ## Product Principles
 
@@ -41,3 +41,7 @@ Merged dev f6a1e52: data 9853338, statistics f8b0641; adopted bilingual Final_Pl
 ## Current C H-04 Delivery
 
 The main instrument occupies the right side; all six districts and the slowest five incidents remain visible in a left rail. On load, the dashboard opens the zone and tab with supplied daily or pooled-band evidence. Morning tail demonstrates why no daily signal does not mean no problem. Preview and API modes are explicit, with CSV upload and visible errors; no silent fallback. Backend service and deployment remain D’s responsibility.
+
+## Frontend refinement, October17
+
+Direct scenario buttons explain that all three include all six districts. A local24-hour clock shares hourly cells, pooled-band outlines, raw/3h and7/14day settings with the grid. Selected rows/rings are outlined teal without changing quantitative fill colors. Daily chart inspection snaps to the closest date across the whole plot. A compact district panel shares the rail with a larger incident panel whose two scopes are direct buttons. Stage chart and enriched comparison table remain available. H-11 pooled two-proportion band flags replace old fixed-baseline band limits; Normal now has no band flags.

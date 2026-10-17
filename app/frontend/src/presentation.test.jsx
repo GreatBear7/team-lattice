@@ -1,12 +1,12 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, DailyData, dailyEvidenceLabel } from './App.jsx'
-import { DailyPChart, BandChart, StageChart, stageShift } from './Charts.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel } from './App.jsx'
+import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
 import { initialFocus } from './focus.js'
-import { HourHeatmap, cellTone } from './HourHeatmap.jsx'
+import { HourHeatmap, cellTone, clockArc } from './HourHeatmap.jsx'
 import { LoadError } from './App.jsx'
 
 describe('precomputed dashboard evidence', () => {
@@ -54,11 +54,12 @@ describe('precomputed dashboard evidence', () => {
     }
   })
 
-  it('retains chronic target failure and exploratory chance signals independently', async () => {
+  it('retains chronic target failure without obsolete pre-H11 band alarms', async () => {
     const normal = await getDashboard('normal')
     expect(normal.analyses.E.summary.above_service_target).toBe(true)
     expect(normal.analyses.E.summary.deterioration_flag).toBe(false)
-    expect(normal.analyses.C.time_of_day.bands.find((b) => b.band === 'evening_rush').flag).toBe(true)
+    expect(normal.analyses.C.time_of_day.bands.find((b) => b.band === 'evening_rush').flag).toBe(false)
+    expect(Object.values(normal.summary.time_of_day_all_zones).flat().every((b) => b.flag === false)).toBe(true)
     expect(normal.analyses.C.summary.deterioration_flag).toBe(false)
   })
 
@@ -169,8 +170,8 @@ describe('precomputed dashboard evidence', () => {
     }
     expect(bundle.summary.zones.reduce((n, z) => n + z.n, 0)).toBe(8400)
     expect(bundle.summary.monitoring.days).toBe(14)
-    expect(bundle.provenance.latest_dev_ref).toMatch(/^f6a1e52/)
-    expect(bundle.provenance.stats_ref).toMatch(/^f8b0641/)
+    expect(bundle.provenance.latest_dev_ref).toMatch(/^88890e4/)
+    expect(bundle.provenance.stats_ref).toMatch(/^149cfbb/)
   })
 
   it('renders descriptive heatmap values and masks supplied unavailable cells', async () => {
@@ -200,6 +201,56 @@ describe('precomputed dashboard evidence', () => {
     delete summary.time_of_day_all_zones
     const zone = renderToStaticMarkup(<ZoneOverview zones={summary.zones} selected="A" />)
     expect(zone).toContain('Bands: unavailable')
+  })
+
+  it('offers three direct explained scenario choices, never a zone-only dataset', () => {
+    const html = renderToStaticMarkup(<ScenarioPicker scenario="recovery" onSelect={() => {}} />)
+    expect(html).not.toContain('<select')
+    expect((html.match(/class="scenario-choice"/g) || [])).toHaveLength(3)
+    expect(html).toContain('All zones · C worsens, then recovers')
+    expect(html).toContain('All zones · D morning delays')
+    expect((html.match(/aria-pressed="true"/g) || [])).toHaveLength(1)
+  })
+
+  it('finds the nearest date throughout the plot including gaps and edge clamping', () => {
+    expect(nearestDateIndex(44, 44, 540, 28)).toBe(0)
+    expect(nearestDateIndex(54, 44, 540, 28)).toBe(1)
+    expect(nearestDateIndex(314, 44, 540, 28)).toBe(14)
+    expect(nearestDateIndex(-100, 44, 540, 28)).toBe(0)
+    expect(nearestDateIndex(1000, 44, 540, 28)).toBe(27)
+    expect(nearestDateIndex(12, 44, 0, 1)).toBe(0)
+    expect(nearestDateIndex(12, 44, 500, 0)).toBeNull()
+  })
+
+  it('draws the clock from the same cells and H11 band evidence as the grid', async () => {
+    const { summary } = await getDashboard('morning_tail')
+    const html = renderToStaticMarkup(<HourHeatmap variant="clock" data={summary.hour_heatmap} bandsByZone={summary.time_of_day_all_zones} selectedZone="D" selectedCell={{ zone_id: 'D', hour: 8 }} />)
+    expect(html).toContain('24-hour clock of late-rate changes by zone')
+    expect((html.match(/class="hour-cell/g) || [])).toHaveLength(144)
+    expect(html).toContain('Outer to inner')
+    expect(html).toContain('Zone D, 06:00–10:00: supplied time-band signal.')
+    expect(html).not.toContain('Zone C, 16:00–20:00: supplied time-band signal.')
+    expect(html).toContain('+22.5 pp')
+    expect(clockArc(0, 1, 30, 50, 100, 100)).toMatch(/^M100,50A50,50/)
+    expect(clockArc(23, 24, 30, 50, 100, 100)).not.toMatch(/NaN|undefined/)
+  })
+
+  it('does not reassure when some pooled band evidence is unavailable', () => {
+    expect(timeBandConclusion(null, 'A')).toBe('Time-band evidence unavailable.')
+    expect(timeBandConclusion([{ status: 'no_data', flag: null }], 'A')).toContain('incomplete')
+    expect(timeBandConclusion(Array.from({length:5}, () => ({ status: 'ok', flag: false })), 'A')).toContain('no upper-limit signals')
+  })
+
+  it('uses H11 pooled comparison limits for both time windows', async () => {
+    const bundle = await getDashboard('morning_tail')
+    for (const window of [14, 7]) {
+      const all = bundle.hourly_views[`${window}_1`].time_of_day_all_zones
+      const flags = Object.entries(all).flatMap(([zone, bands]) => bands.filter((b) => b.flag).map((b) => `${zone}:${b.band}`))
+      expect(flags).toEqual(['D:morning_rush'])
+      const band = all.D.find((b) => b.band === 'morning_rush')
+      expect(band.z).toBeGreaterThan(3)
+      expect(band.ucl).toBeGreaterThan(.28)
+    }
   })
 
 })

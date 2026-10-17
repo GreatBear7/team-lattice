@@ -1,9 +1,9 @@
 import fixtureSource from '../mocks/source.json'
 
 export const SCENARIOS = [
-  { id: 'normal', label: 'Normal operations' },
-  { id: 'recovery', label: 'Recovery · Zone C' },
-  { id: 'morning_tail', label: 'Morning tail · Zone D' },
+  { id: 'normal', label: 'Normal operations', description: 'All zones · reference conditions' },
+  { id: 'recovery', label: 'Recovery', description: 'All zones · C worsens, then recovers' },
+  { id: 'morning_tail', label: 'Morning tail', description: 'All zones · D morning delays' },
 ]
 
 const ZONES = ['A', 'B', 'C', 'D', 'E', 'F']

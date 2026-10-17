@@ -1,7 +1,7 @@
 {
-  "latest_dev_ref": "f6a1e5264e79fad547806cc7697893e9ff770263",
+  "latest_dev_ref": "88890e4518089fcb58ec88341d7a64c9743fde24",
   "data_ref": "9853338b31dcc761860ede9b549208029c877251",
-  "stats_ref": "f8b0641be25270d0ea84bd46f024f2def801f194",
+  "stats_ref": "149cfbb0917d849937067e05dfd9944c3fe7b46e",
   "data_branch_ref": "e326388558b40346a99da9b184af29c7f382ee50",
   "stats_branch_ref": "f8b0641be25270d0ea84bd46f024f2def801f194",
   "data_files": {
@@ -9,12 +9,12 @@
     "recovery.csv": "ba124ca5a1e053f8555ac954c3e7f4bb4985a7cb456e1967b5d12f9ae4b75ad6",
     "morning_tail.csv": "baa23bcc0f0b831f121552aed70fdebcb8cbf5c71f42315f1c2b8d5728b7deab"
   },
-  "stats_sha256": "a94ef699b1f4e5742c7ad57b96489eb14ffd600f5a24be7cb4be9dd037875b1e",
+  "stats_sha256": "0ee8a773ef56dbe7778e2607bbd641cde65aa7e3c9847a207d721851d71d4bed",
   "generator_sha256": "fa0431479b91759f4eb3a725a0881c881d6370648b26c7966f6341d7f34900fc",
   "git_objects": {
     "app/qc.py": {
-      "git_blob": "70ed66c01b705009075ea40de73ae9c2191b8a80",
-      "sha256": "a94ef699b1f4e5742c7ad57b96489eb14ffd600f5a24be7cb4be9dd037875b1e"
+      "git_blob": "a7b47e402ed911d6c3f734bdda4403ffad4d158c",
+      "sha256": "0ee8a773ef56dbe7778e2607bbd641cde65aa7e3c9847a207d721851d71d4bed"
     },
     "data/generate_data.py": {
       "git_blob": "7a776fa3b4462da73a12b0e3e97b326e9884e8d6",

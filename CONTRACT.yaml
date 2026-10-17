@@ -88,16 +88,18 @@ tasks:
       same numbers as the H-03 known-answer test.
     frontend_scope:
       owns: ["app/frontend/", "PRODUCT.md", "DESIGN.md", ".impeccable/"]
-      status: in_progress
+      status: done
       notes: >
         User authorized the compact supervisor dashboard redesign with
-        latest three scenarios (normal/recovery/morning_tail), all six zones,
+        latest H-11 three scenarios (normal/recovery/morning_tail), all six zones,
         focused evidence triage, daily p charts, hourly heatmap and band views,
-        baseline/monitoring stage P90, CSV/API client integration, and design records. Backend
+        baseline/monitoring stage P90, grid/clock selection, flat scenario and incident controls,
+        nearest-date chart inspection, CSV/API client integration, and design records. Backend
         scaffolding and scripts remain D-owned; app/qc.py and root tests
         remain B-owned. Do not copy a backend scaffold over these paths.
       definition_of_done: "npm --prefix app/frontend test && npm --prefix app/frontend run build"
-    result: "C frontend update in progress against dev f6a1e52; D backend/deployment remains pending."
+      result: "69 frontend tests passed; production build passed; portable H-11 fixture refresh passed; 25 HTTP harness requests passed; desktop/mobile and grid-clock transition reviewed. C frontend complete on frontend; D backend/deployment pending."
+    result: "C frontend sub-scope complete against dev 88890e4 with H-11; overall H-04 remains in progress pending D end-to-end acceptance."
 
   - id: H-05
     title: Demonstration of the tool on every test dataset

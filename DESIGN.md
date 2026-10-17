@@ -27,13 +27,10 @@ colors:
   selected-date: '#dce9fa'
   tooltip-surface: '#183247'
   tooltip-text: '#edf5fc'
+  hourly-neutral: '#f5f7f9'
+  hourly-unavailable: '#e5eaee'
+  band-outline: '#17242e'
 typography:
-  headline:
-    fontFamily: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
-    fontSize: 15px
-    fontWeight: 650
-    letterSpacing: -.015em
-    lineHeight: 20px
   title:
     fontFamily: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
     fontSize: 14px
@@ -75,7 +72,7 @@ components:
     backgroundColor: '{colors.teal}'
     textColor: '{colors.surface}'
     rounded: '{rounded.control}'
-    padding: 9px 15px
+    padding: 8px 13px
   button-text:
     textColor: '#096e69'
     padding: 3px 0
@@ -118,6 +115,27 @@ components:
   analysis-tab-active:
     textColor: '#066e69'
     padding: 0 10px
+  scenario-choice:
+    backgroundColor: '{colors.surface}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.tile}'
+    padding: 9px 12px
+  scenario-choice-active:
+    backgroundColor: '{colors.selected-surface}'
+    textColor: '#066a65'
+    rounded: '{rounded.tile}'
+    padding: 9px 12px
+  segmented-active:
+    backgroundColor: '{colors.surface}'
+    textColor: '#096e69'
+    rounded: 3px
+    padding: 5px 9px
+  input:
+    backgroundColor: '{colors.surface}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.control}'
+    padding: 5px 8px
+    height: 31px
   zone-select:
     textColor: '{colors.ink}'
     rounded: 3px
@@ -141,7 +159,7 @@ The interface uses aligned figures, persistent panel locations and restrained bo
 - Teal selection and explicit statistical color roles.
 - Data-drawn SVG charts with keyboard inspection.
 
-Extracted from the current `app/frontend/src/styles.css`, `charts.css`, `Charts.jsx` and `App.jsx`. The supervisor-dashboard surface brief owns the approved three-panel composition.
+Extracted from the current `app/frontend/src/styles.css`, `heatmap.css`, `Charts.jsx`, `HourHeatmap.jsx` and `App.jsx`. The supervisor-dashboard surface brief owns the approved three-panel composition.
 
 ## Colors
 
@@ -152,6 +170,7 @@ Cool neutrals support a small set of functional accents. Frontmatter remains the
 - **Instrument Teal** anchors controls and the selected zone identity tile. The selected-zone wash and inset seam keep selection visible across its table row.
 - **Observed Data Blue** identifies daily observations and monitoring time-band bars. **Frozen Baseline Teal** identifies the daily center line.
 - **Keyboard Focus Blue** supports visible focus; selected dates use the pale blue plot wash.
+- **Hourly Zero Change** is the midpoint of the hourly diverging scale. **Hourly Unavailable Evidence** carries gray hatching, while **Supplied Band Outline** frames flagged bands independently of cell color.
 
 ### Secondary
 
@@ -176,7 +195,6 @@ Cool neutrals support a small set of functional accents. Frontmatter remains the
 
 **Body and interface font:** the native system sans stack in the frontmatter. The hierarchy is compact and practical. Tabular numerals are enabled at the root, so tables, chart labels and summary values align consistently.
 
-- **Headline:** the compact summary title.
 - **Title:** repeated panel headings.
 - **Selected zone:** the analysis-panel heading.
 - **Body:** default interface text and the exception summary.
@@ -188,22 +206,24 @@ Supporting metadata uses local (11px) treatments. Methods prose uses (12px), rel
 
 ## Layout
 
-Use flat tiled instruments and stable evidence positions. The current desktop shell has a toolbar (56px), one-line summary (48px), flexible workspace and footer (22px). The workspace uses a zone-overview column (350px) beside a flexible selected-zone analysis panel. The full-width outlier table sits below both panels in a fixed bottom row (190px). Gaps and workspace padding are (14px).
+Use flat tiled instruments and stable evidence positions. The current desktop shell has a direct scenario toolbar (86px), flexible workspace and footer (24px). There is no summary banner. A left rail (360px) places the district overview in the first row (308px) above the severe-incident table; the incident row takes the remainder with a minimum (230px). The selected-zone analysis occupies the flexible right column and spans both rows. Gaps and workspace padding are (14px).
 
-At wide desktop sizes (1500px and above), the zone column becomes (370px), bottom row (206px), and gaps (16px). Between (1100px) and (1199px), toolbar and chart spacing contract. At (1099px) and below the document scrolls naturally, the toolbar wraps, the zone column becomes (300px), and the top row has more room for analysis. At (760px) and below, the zone overview, analysis and outlier table stack in that order. The narrowest layout adjusts tab spacing at (390px). Charts retain their independent (700px) adjustment.
+At wide desktop sizes (1500px and above), the toolbar becomes (90px), left rail (380px), district row (338px), incident minimum (250px), and gaps (16px). Between (1100px) and (1199px), the rail contracts to (330px), with gaps and padding (12px). At (1099px) and below the document scrolls naturally, the toolbar wraps, and a (300px) rail uses a (350px) district row above an incident row of at least (275px). At (760px) and below, the selected-zone analysis, district overview and incidents stack in that order. Tables preserve their columns through local horizontal scrolling. The narrowest layout adjusts tab spacing at (390px); charts retain their independent (700px) adjustment.
 
-The analysis panel shows one local view at a time: Daily trend, Time of day or Delay stages. It does not depend on top-level navigation, KPI cards or a zone filter. Incident scope and timestamp expansion remain local controls in the bottom panel. Tables may scroll within their containers.
+The analysis panel shows one local view at a time: Where & when, Daily p chart or Delay stages. Time-of-day display, window and aggregation controls remain beside that instrument. Incident scope and timestamp expansion remain in the incident panel. The narrow clock reserves a plot of at least (330px); grid and clock sizes remain independent when switching modes.
 
 ## Elevation & Depth
 
-Resting panels are white surfaces separated by thin seams. The selected zone row uses an inset outline. The chart inspection tooltip is the only raised instrument element.
+Resting panels are white surfaces separated by thin seams. The selected zone row uses an inset outline. Chart inspection tooltips float above their plots. Active segmented buttons have a small local shadow; resting instrument panels stay flat.
 
 ### Shadow Vocabulary
+
+- **Segmented selection:** (`0 1px 3px #22344020`) separates the active local control from its pale track.
 
 - **Selected-zone inset:** (`inset 0 0 0 1px #a2cec7`) reinforces the selected table row.
 - **Chart inspection:** (`0 5px 14px #18324724`) separates a transient tooltip from its plot.
 
-**The Flat Instruments Rule.** Resting panels use a seam border. Reserve the floating shadow for the chart inspection tooltip; selection uses an inset outline.
+**The Flat Instruments Rule.** Resting panels use a seam border. Reserve floating shadows for transient inspection and active segmented controls; district selection uses an inset outline.
 
 ## Shapes
 
@@ -219,11 +239,15 @@ Text actions are compact teal labels with underline on hover. The help control i
 
 ### Inputs / Fields
 
-The existing field primitive is a native select: white surface, muted thin border, compact control radius and the height recorded in frontmatter. Hover strengthens its border. Scenario and incident scope each have their own select; preserve accessible labels and native keyboard behavior.
+The existing field primitive is a native select: white surface, muted thin border, compact control radius and the height recorded in frontmatter. Hover strengthens its border. Window and hourly aggregation use native selects. Data-source connection fields use white bordered inputs, the same compact control radius and visible keyboard focus. Disabled inputs use a pale gray surface. Preserve accessible labels and native keyboard behavior.
 
 ### Local Analysis Tabs
 
-Daily trend, Time of day and Delay stages share the selected-zone panel. Compact horizontal tabs use muted text, a teal bottom seam and teal ink for the selected state. Hover adds a subtle surface tint. Tab semantics, roving focus, arrow navigation, Home and End support keyboard use. Daily and time-band views offer a local chart/data toggle.
+Where & when, Daily p chart and Delay stages share the selected-zone panel. Compact horizontal tabs use muted text, a teal bottom seam and teal ink for the selected state. Hover adds a subtle surface tint. Tab semantics, roving focus, arrow navigation, Home and End support keyboard use. Daily, time-band and stage views offer local chart/data toggles.
+
+### Scenario and Scope Controls
+
+Three direct scenario buttons carry a short name and explanatory second line. They use white surfaces, thin borders and the tile radius; the pressed scenario uses a pale teal wash, teal border and inset teal seam. They remain visible as a group when the toolbar wraps. Incident scope uses two direct segmented buttons, All zones and the selected zone, with an independent timestamp-expansion action. Selected local controls use white on a pale track, teal ink and a subtle shadow.
 
 ### Chips / State Badges
 
@@ -235,13 +259,15 @@ Panels use a white surface, seam border and panel radius. Tables use sticky pale
 
 ### Zone Selection
 
-Zones occupy table rows with columns for identity, late rate, P90 and historical signal days. Clicking a row selects the zone; the identity cell contains an actual keyboard-focusable button. A selected row combines a pale teal wash, inset seam and solid teal identity tile. Selection and keyboard focus remain independently visible.
+Zones occupy table rows with columns for identity, late rate, P90 and change evidence. Clicking a row selects the zone; the identity cell contains an actual keyboard-focusable button. A selected row combines a pale teal wash, inset seam and solid teal identity tile. Selection and keyboard focus remain independently visible.
 
 ### Statistical Instruments
 
-The daily p chart uses blue observations, a teal center line, amber dashed control limits, a dotted target and coral triangles for supplied flags. Historical dates are shaded; selected dates have a separate wash. Focusable points expose a tooltip and update the persistent readout.
+The daily p chart uses blue observations, a teal center line, amber dashed control limits, a dotted target and coral triangles for supplied flags. Historical dates are shaded; selected dates have a separate wash. Moving horizontally anywhere across the plot inspects the nearest date, with a dashed vertical crosshair and tooltip. Focusable points preserve keyboard inspection and date selection.
 
-Time-band comparisons use gray baseline bars and blue monitoring bars, with coral monitoring bars for supplied flags and an amber dashed upper limit. Limited evidence remains labeled. Delay stages use a three-row table with baseline median, monitoring median and monitoring P90 columns. Stage medians remain separate measures and are never presented as an additive median total.
+Time-band comparisons use gray baseline bars and blue monitoring bars, with coral monitoring bars for supplied flags and an amber dashed upper limit. Limited evidence remains labeled. Delay stages retain the paired-dot comparison chart and a rich three-row, six-column table: stage identity, baseline and monitoring median, baseline and monitoring P90, and descriptive P90 change. Grouped headers separate medians from P90. Pale teal monitoring cells, larger monitoring P90 figures and signed change values establish the hierarchy; longer changes use coral and shorter changes blue. Stage medians remain separate measures and are never presented as an additive median total.
+
+The hourly grid and 24-hour concentric clock share six zones, 24 local hours, a fixed diverging scale (−25 to +25 percentage points), 7/14-day windows and raw 1-hour/circular pooled 3-hour controls. Blue indicates a lower late rate, neutral a zero change and coral a higher rate. Gray hatching preserves unavailable or limited evidence. Black outlines indicate only supplied, available five-band flags; color never implies per-hour significance. Teal row or ring outlines identify the selected district without changing quantitative fills. The clock has an outer-to-inner A–F key. Roving cell focus, arrow navigation and Enter/Space selection update the persistent readout. Band comparison remains a separate local view.
 
 The reduced-motion media rule disables transitions and animation. Plot geometry follows supplied observations, and all analysis copy preserves missing-evidence and interpretation limits.
 
