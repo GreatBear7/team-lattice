@@ -10,7 +10,7 @@ Requires Python 3.13 and Node.js 20+ / npm. From this folder:
 bash app/testme.sh
 ```
 
-Open **http://127.0.0.1:8000/**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. Public deployment is pending; this is the local working version.
+Open **http://127.0.0.1:8000/** for the home page; choose a dataset or enter the dashboard at **http://127.0.0.1:8000/app**. The quick guide is at **http://127.0.0.1:8000/guide**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. This integrated version is staged on dev; publishing it is a separate deployment step.
 
 - [Application setup, inputs, endpoints, parameters, tests and deployment](app/README.md)
 - [Supervisor demo for all three datasets](demo/README.md)

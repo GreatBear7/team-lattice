@@ -1,7 +1,7 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs, managerMessage, briefingAnswer } from './App.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs, managerMessage, briefingAnswer, initialScenario } from './App.jsx'
 import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex, dailyTooltipText } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
@@ -310,4 +310,11 @@ describe('interactive response briefing', () => {
     const morning = await getDashboard('morning_tail')
     expect(briefingAnswer(morning.analyses.D, morning.summary.time_of_day_all_zones.D).text).toContain('06:00-10:00')
   })
+})
+
+
+it('opens valid homepage dataset links and ignores unknown dataset identifiers', () => {
+  expect(initialScenario('?dataset=normal')).toBe('normal')
+  expect(initialScenario('?dataset=recovery')).toBe('recovery')
+  expect(initialScenario('?dataset=unknown')).toBe('morning_tail')
 })

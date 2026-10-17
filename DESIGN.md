@@ -294,3 +294,7 @@ The left rail pairs a three-column District overview (district, late calls, atte
 Daily inspection floats inside the plot with no reserved space or instruction text. Position candidates avoid the selected observation and prefer regions with fewer plotted marks/control lines. Pointer/date snapping and keyboard inspection remain available. Tooltip counts come only from the selected day’s API late/n values. The full chart height is restored.
 
 Issue #7: operator labels use Dataset 1–3, plain-language captions, Daily p chart → Where & when → Why and “90% arrive within”. Technical details remain in documentation. Desktop verification is in scope; the user explicitly excluded mobile verification for this revision.
+
+## First-use pages
+
+The H12 home page preserves the teal identity and trace animation but reduces the first visit to purpose, one dashboard entry and three dataset links. The guide presents three start steps and four status explanations by default; CSV schema and the original worked statistical methods are retained in native disclosures. Repetitive FAQ/glossary tables and obsolete slowest-call instructions are removed. Dashboard navigation uses relative Home/Guide links and dataset query parameters, supporting deployment subpaths.

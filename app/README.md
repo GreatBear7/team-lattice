@@ -10,7 +10,7 @@ Requires Python 3.13 and Node.js 20+ with npm. From the repository root:
 bash app/testme.sh
 ```
 
-This creates `.venv`, installs pinned runtime dependencies, builds the UI in **API mode**, and starts one server. Open **http://127.0.0.1:8000/**; interactive API documentation is at **http://127.0.0.1:8000/docs**. Stop with Ctrl-C. If port 8000 is occupied, run `RESPONSEWATCH_PORT=8001 bash app/testme.sh`. First run needs network access to install packages. Do not open `dist/index.html` directly: the API requires the running server.
+This creates `.venv`, installs pinned runtime dependencies, builds the UI in **API mode**, and starts one server. Open **http://127.0.0.1:8000/** for the home page. Dashboard: **http://127.0.0.1:8000/app**; quick guide: **http://127.0.0.1:8000/guide**; interactive API documentation is at **http://127.0.0.1:8000/docs**. Stop with Ctrl-C. If port 8000 is occupied, run `RESPONSEWATCH_PORT=8001 bash app/testme.sh`. First run needs network access to install packages. Do not open `dist/index.html` directly: the API requires the running server.
 
 For frontend development, leave the backend running and run `VITE_DATA_SOURCE=api npm --prefix app/frontend run dev`; Vite proxies `/api` to port 8000. The standalone HTML shared earlier remains an offline, precomputed preview.
 
@@ -50,3 +50,7 @@ Installs pinned test tooling, builds the UI, runs all statistics/API tests and f
 `bash app/manifestme.sh` builds the production UI and writes an ASGI Posit Connect manifest locally. The bundle contains `api.py`, unchanged `qc.py`, pinned dependencies, exact scenario CSV copies and built frontend assets. Tests check the CSV copies match `data/`; update both copies when A changes data. The committed `frontend/dist` is a release snapshot used by manifest-based CI; never hand-edit it. After source changes, rebuild, regenerate the manifest and commit both. Relative API base `api` and Vite base `./` support Connect subpaths.
 
 When credentials become available, put `CONNECT_SERVER` and `CONNECT_API_KEY` in ignored `app/.env`, then run `bash app/deployme.sh`. Never commit `.env`. The prepared GitHub workflow publishes on main (or manual dispatch) using repository secrets and checks health. Public deployment and logged-out URL acceptance are still pending; configure a single application process because uploads currently live in memory. No server URL or key is included in this repository.
+
+## First-use navigation
+
+Home (`/`) offers three dataset links (`app?dataset=normal`, `recovery`, `morning_tail`) and a direct dashboard entry. `/app` serves the integrated manager dashboard, with relative Home and Guide links; `/guide` defaults to a short onboarding path and folds CSV requirements and mathematical methods into disclosures. Relative navigation/assets/API URLs preserve the deployment content prefix. H12 is restored from `h12-home-guide` after its earlier merge/revert; runtime requirements and statistics are unchanged.

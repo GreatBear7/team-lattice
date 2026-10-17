@@ -77,3 +77,7 @@ collect this data for real.
 What we will NOT build, so nobody (human or agent) builds it by accident.
 - Default: logins, databases, real customer data, a second statistic before the first one is tested.
 - No simulated/live incident stream, unfinished-call prediction, incident write/edit workflow, dispatcher performance ranking, causal diagnosis, clinical outcome prediction, optimization/forecasting, X-bar/S production chart, or scenario-truth-driven analysis. Uploads are transient in-memory datasets (ten retained plus three built-ins), one worker/process; restart requires re-upload. Authentication, persistent/multi-process storage and Supabase are outside this local version.
+
+## First-use entry points
+
+The home page at `/` explains the purpose and links to `/app` or a selected dataset via `app?dataset=normal|recovery|morning_tail`. The integrated dashboard links back to Home and to `/guide`. Guide content defaults to quick-start instructions and attention labels; CSV requirements and the original mathematical methods remain available on demand. `/docs` and statistics endpoints are unchanged. This integrates the team’s H12 pages without replacing the latest manager dashboard.

@@ -252,9 +252,14 @@ export function LoadError({ error, onRetry, onSource }) {
   return <section className="panel error-panel" role="alert"><h2>Dataset could not be loaded</h2><p>{error.message}</p>{error.errors?.length > 0 && <div className="table-scroll validation-errors"><table><thead><tr><th>CSV row</th><th>Field</th><th>What to fix</th></tr></thead><tbody>{error.errors.map((item, i) => <tr key={i}><td>{item.row ?? '—'}</td><td>{item.field || '—'}</td><td>{item.reason}</td></tr>)}</tbody></table></div>}<div className="error-actions"><button className="primary-button" onClick={onRetry}>Retry loading</button><button className="text-button" onClick={onSource}>Change data source</button></div><p>API errors are shown directly. No preview data has been substituted.</p></section>
 }
 
+export function initialScenario(search = '') {
+  const id = new URLSearchParams(search).get('dataset')
+  return SCENARIOS.some(item => item.id === id) ? id : 'morning_tail'
+}
+
 const initialConfig = { mode: import.meta.env.VITE_DATA_SOURCE === 'api' ? 'api' : 'demo', baseUrl: import.meta.env.VITE_API_BASE || '/api' }
 export default function App() {
-  const [scenario, setScenario] = useState('morning_tail')
+  const [scenario, setScenario] = useState(() => initialScenario(typeof window === 'undefined' ? '' : window.location.search))
   const [config, setConfig] = useState(initialConfig)
   const [file, setFile] = useState(null)
   const [bundle, setBundle] = useState(null)
@@ -267,6 +272,11 @@ export default function App() {
   const [showMethods, setShowMethods] = useState(false)
   const [windowDays, setWindowDays] = useState(14)
   const client = useMemo(() => createDataClient(config), [config])
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('dataset', scenario)
+    window.history.replaceState(null, '', url)
+  }, [scenario])
   useEffect(() => {
     const controller = new AbortController()
     let current = true
@@ -282,7 +292,7 @@ export default function App() {
   const sourceProps = { config, onApply: applyConfig, onUpload: setFile, fileName: file?.name, busy: loading }
   return <div className="dashboard-shell">
     <a className="skip-link" href="#workspace">Skip to dashboard</a>
-    <header className="appbar"><a className="wordmark" href="#workspace" aria-label="ResponseWatch dashboard"><span className="brand-symbol"><Icon name="pulse" size={23} /></span><span>Response<span className="brand-secondary">Watch</span></span></a><ScenarioPicker scenario={scenario} uploaded={Boolean(file)} onSelect={(id) => { setFile(null); setScenario(id); setRetry(retry + 1) }} /><span className="date-range">{summary ? `${dateLabel(summary.monitoring.start)} – ${dateLabel(summary.monitoring.end)}, ${summary.monitoring.end.slice(0, 4)}` : 'Historical monitoring'}<small>Monitoring · New York time</small></span><button className="source-button" aria-expanded={showMethods} onClick={() => setShowMethods(!showMethods)}>{config.mode === 'demo' ? 'Preview data' : 'API data'}<Icon name="info" size={15} /></button></header>
+    <header className="appbar"><a className="wordmark" href="./" aria-label="ResponseWatch home"><span className="brand-symbol"><Icon name="pulse" size={23} /></span><span>Response<span className="brand-secondary">Watch</span></span></a><nav className="dashboard-nav" aria-label="Pages"><a href="./">Home</a><a href="guide">Guide</a></nav><ScenarioPicker scenario={scenario} uploaded={Boolean(file)} onSelect={(id) => { setFile(null); setScenario(id); setRetry(retry + 1) }} /><span className="date-range">{summary ? `${dateLabel(summary.monitoring.start)} – ${dateLabel(summary.monitoring.end)}, ${summary.monitoring.end.slice(0, 4)}` : 'Historical monitoring'}<small>Monitoring · New York time</small></span><button className="source-button" aria-expanded={showMethods} onClick={() => setShowMethods(!showMethods)}>{config.mode === 'demo' ? 'Preview data' : 'API data'}<Icon name="info" size={15} /></button></header>
     <main id="workspace" className="workspace" tabIndex={-1} aria-busy={loading}>
       <h1 className="sr-only">Response quality</h1>
       {error ? showMethods ? <section className="panel error-panel source-error"><div className="panel-heading"><h2>Data source & interpretation</h2><button className="text-button" onClick={() => setShowMethods(false)}>Back to error</button></div><SourcePanel {...sourceProps} /></section> : <LoadError error={error} onRetry={() => setRetry(retry + 1)} onSource={() => setShowMethods(true)} /> : !bundle ? <div className="loading-layout" role="status">Loading {config.mode === 'api' ? 'from the statistics service' : 'precomputed evidence'}…</div> : <>

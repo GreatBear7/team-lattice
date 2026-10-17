@@ -592,3 +592,7 @@ input:disabled { color: var(--muted); background: #f5f7f8; }
   .zone-overview .zone-table table { height:100%; }
   .zone-overview .zone-table thead { height:27px; }
 }
+
+.dashboard-nav { display:flex; gap:9px; font-size:11px; flex-shrink:0; }
+.dashboard-nav a { color:var(--muted); text-decoration:none; padding:4px 0; }
+.dashboard-nav a:hover { color:var(--teal); text-decoration:underline; }

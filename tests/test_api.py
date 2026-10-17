@@ -647,7 +647,7 @@ def test_root_serves_built_ui_or_api_info():
     assert r.status_code == 200
     if (api.DIST / "index.html").is_file():
         assert "text/html" in r.headers["content-type"]
-        assert '<div id="root">' in r.text
+        assert "Open the dashboard" in r.text
     else:
         assert r.json()["name"] == "ResponseWatch API"
 
@@ -690,3 +690,26 @@ def test_csv_row_width_rejected(fresh_state):
 def test_upload_limit(monkeypatch, fresh_state):
     monkeypatch.setattr(api, "MAX_UPLOAD_BYTES", 10)
     assert upload(b"a" * 11).status_code == 413
+
+
+@pytest.mark.parametrize("route,expected", [("/", "Choose a starting point"), ("/app", '<div id="root">'), ("/guide", "Start in three steps")])
+def test_integrated_pages(route, expected):
+    r = client.get(route)
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    assert expected in r.text
+
+
+def test_subpath_relative_navigation_and_assets():
+    from urllib.parse import urljoin
+    import re
+    base = 'https://example.test/content/demo/'
+    home = client.get('/').text
+    links = re.findall(r'href="(app[^"]*)"', home)
+    assert 'app?dataset=normal' in links
+    assert all(urljoin(base, link).startswith(base+'app') for link in links)
+    dashboard = client.get('/app').text
+    for asset in re.findall(r'(?:src|href)="(\./assets/[^"]+)"', dashboard):
+        assert urljoin(base+'app',asset).startswith(base+'assets/')
+        assert client.get('/'+asset.removeprefix('./')).status_code == 200
+    assert client.get('/api/health').status_code == 200
