@@ -22,7 +22,7 @@
 # Delete the paths you do not use.
 
 spec: SPEC.md
-updated: ""
+updated: "2026-10-17"
 
 tasks:
   - id: H-01
@@ -74,8 +74,8 @@ tasks:
   - id: H-04
     title: Working tool - one demo copied to app/ and wired to the H-03 function
     points: "25 - Tool Implementation: an effective, working tool (does it run?)"
-    status: in_progress
-    owner: "Claire (C), Codex: frontend only"
+    status: done
+    owner: "Claire / Codex: C frontend complete, D backend integration"
     started_at: "2026-10-16 17:46"
     owns: ["app/"]
     notes: >
@@ -99,7 +99,13 @@ tasks:
         remain B-owned. Do not copy a backend scaffold over these paths.
       definition_of_done: "npm --prefix app/frontend test && npm --prefix app/frontend run build"
       result: "69 frontend tests passed; production build passed; portable H-11 fixture refresh passed; 25 HTTP harness requests passed; desktop/mobile and grid-clock transition reviewed. C frontend complete on frontend; D backend/deployment pending."
-    result: "C frontend sub-scope complete against dev 88890e4 with H-11; overall H-04 remains in progress pending D end-to-end acceptance."
+    backend_scope:
+      owns: ["app/api.py", "app/README.md", "app/requirements.txt", "app/requirements-dev.txt", "app/*.sh", "app/scenario_data/", "app/manifest.json", "app/.python-version", "app/.gitignore", "tests/test_api.py", ".github/workflows/", ".github/scripts/", "app/frontend/dist/"]
+      status: done
+      notes: "User explicitly authorized completing D: static CSV API, validation, isolated dataset contexts, same-origin built frontend, testme and deployment preparation; no live stream or Supabase; preserve B qc.py."
+      definition_of_done: ".venv/bin/python -m pytest tests -q && npm --prefix app/frontend test && npm --prefix app/frontend run build; testme serves UI and API with actual CSV statistics"
+      result: "220 passed (pytest); 69 passed (Vitest); build passed; API-mode browser CSV upload verified. No change to B qc.py. One worker, in-memory uploads."
+    result: "Local end-to-end complete: 220 statistics/API tests and 69 frontend tests passed; production build passed; testme serves UI/API; browser uploaded recovery.csv and reproduced C six daily/two band signals. Public deployment is separate H-06."
 
   - id: H-05
     title: Demonstration of the tool on every test dataset
@@ -133,7 +139,7 @@ tasks:
     definition_of_done: >
       The workflow run is green, and the public URL answers HTTP 200 from a
       logged-out browser and returns the H-03 numbers for one test dataset.
-    result: ""
+    result: "Deployment scripts, workflow and 13-file ASGI manifest prepared and checksums verified. User chose local-only for now; no credentials configured, no public URL or deployment claimed."
 
   - id: H-07
     title: README and function documentation
@@ -150,7 +156,7 @@ tasks:
       how each function or endpoint works, how to run it in one command, the
       live URL, and links demo/README.md. A teammate who did not write the
       code follows it from a fresh clone and it works.
-    result: ""
+    result: "Tool README, app setup/API documentation and demo/README.md written; local one-command run verified. Fresh-clone teammate walkthrough and public URL pending, so not marked done."
 
   - id: H-08
     title: Reproducible public repo, submitted on Devpost
