@@ -1,6 +1,6 @@
 """Integration test on the teammate CSVs. Skipped when the files are not there.
 
-Set RW_DATA_DIR to the folder holding normal.csv, hidden_tail.csv and recovery.csv
+Set RW_DATA_DIR to the folder holding normal.csv, recovery.csv and morning_tail.csv
 (default: <repo>/data).
 """
 import os
@@ -12,10 +12,12 @@ import pytest
 from app import qc
 
 DATA_DIR = Path(os.environ.get("RW_DATA_DIR", Path(__file__).resolve().parent.parent / "data"))
-FILES = ["normal.csv", "hidden_tail.csv", "recovery.csv"]
+FILES = ["normal.csv", "recovery.csv", "morning_tail.csv"]
 P0 = {"A": 0.084, "B": 0.094, "C": 0.131, "D": 0.141, "E": 0.238, "F": 0.256}
 OCT = lambda a, b: [f"2026-10-{d:02d}" for d in range(a, b + 1)]
-EXPECTED_FLAGS = {"normal.csv": {}, "hidden_tail.csv": {"C": OCT(1, 11)}, "recovery.csv": {"C": OCT(1, 6)}}
+# morning_tail.csv: zone D gets +15-25 min travel on 25% of morning-rush calls, days 18-28. The daily
+# p chart does not flag it (few calls, so the late share barely moves); the time-band view does.
+EXPECTED_FLAGS = {"normal.csv": {}, "recovery.csv": {"C": OCT(1, 6)}, "morning_tail.csv": {}}
 
 
 @pytest.fixture(scope="module")
@@ -53,8 +55,8 @@ def test_flagged_days(results, name):
 # is a chance flag: 30 unadjusted comparisons, so about one is expected under no change.
 EXPECTED_BAND_FLAGS = {
     "normal.csv": {"C": ["evening_rush"]},
-    "hidden_tail.csv": {"C": ["night", "morning_rush", "midday", "evening_rush", "late_evening"]},
     "recovery.csv": {"C": ["midday", "evening_rush"]},
+    "morning_tail.csv": {"C": ["evening_rush"], "D": ["morning_rush"]},
 }
 
 
@@ -72,3 +74,19 @@ def test_band_flags(name):
         if keys:
             flagged[zone] = keys
     assert flagged == EXPECTED_BAND_FLAGS[name]
+
+
+def test_morning_tail_zone_d_band_and_slowest():
+    """morning_tail.csv: D's morning-rush band is flagged (0.371 vs UCL 0.249) and D's five slowest
+    monitoring incidents are the injected severe ones (all in morning rush, 35-42 min)."""
+    path = DATA_DIR / "morning_tail.csv"
+    if not path.exists():
+        pytest.skip(f"{path} not found")
+    df = pd.read_csv(path)
+    band = next(b for b in qc.late_rate_by_band(df, "D") if b["band"] == "morning_rush")
+    assert band["status"] == "ok" and band["flag"] is True
+    assert band["p_band"] == pytest.approx(0.371, abs=0.0005)
+    assert band["ucl"] == pytest.approx(0.249, abs=0.0005)
+    slow = qc.slowest_incidents(df, zone_id="D")
+    assert [round(s["response_min"], 1) for s in slow] == [41.6, 40.7, 40.6, 37.0, 35.6]
+    assert all(6 <= int(s["unit_notified_at"][11:13]) < 10 for s in slow)
