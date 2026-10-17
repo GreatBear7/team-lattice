@@ -15,7 +15,7 @@ Open the printed local URL in a full browser window. Desktop 1280×720 and large
 
 ## Operator flow
 
-1. Choose **Normal operations**, **Recovery · Zone C**, or **Morning tail · Zone D**. The opening brief and initial selection derive from supplied daily/band results, never `scenario_truth.json`.
+1. Choose **Normal operations**, **Recovery · Zone C**, or **Morning tail · Zone D**. The initially selected zone and tab derive from supplied daily/band results, never `scenario_truth.json`.
 2. Inspect the selected zone in the large right instrument. **Where & when** shows a six-zone × 24-hour heatmap or five pooled time bands. **Daily p chart** exposes frozen-baseline limits, date inspection and a cohort table. **Delay stages** compares separate baseline/monitoring medians and P90s.
 3. Keep service acceptability, statistical change and severity separate: amber late rates exceed q; the Change column distinguishes daily and exploratory band signals; severe individual incidents remain visible without a flag. Incident IDs select their zone. All/selected-zone scope and timestamps are local to the incident table.
 4. **Preview data / API data** opens source settings and interpretation. API mode adds CSV upload, visible request errors and row/field validation errors. No API error falls back to preview data.

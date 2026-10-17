@@ -40,4 +40,4 @@ Merged dev f6a1e52: data 9853338, statistics f8b0641; adopted bilingual Final_Pl
 
 ## Current C H-04 Delivery
 
-The main instrument occupies the right side; all six districts and the slowest five incidents remain visible in a left rail. A factual opening brief points to supplied daily or pooled-band evidence. Morning tail demonstrates why no daily signal does not mean no problem. Preview and API modes are explicit, with CSV upload and visible errors; no silent fallback. Backend service and deployment remain D’s responsibility.
+The main instrument occupies the right side; all six districts and the slowest five incidents remain visible in a left rail. On load, the dashboard opens the zone and tab with supplied daily or pooled-band evidence. Morning tail demonstrates why no daily signal does not mean no problem. Preview and API modes are explicit, with CSV upload and visible errors; no silent fallback. Backend service and deployment remain D’s responsibility.

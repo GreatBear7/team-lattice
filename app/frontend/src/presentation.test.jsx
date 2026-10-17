@@ -1,8 +1,8 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, SummaryLine, DailyData, dailyEvidenceLabel } from './App.jsx'
-import { DailyPChart, BandChart, StageChart } from './Charts.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, DailyData, dailyEvidenceLabel } from './App.jsx'
+import { DailyPChart, BandChart, StageChart, stageShift } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
 import { initialFocus } from './focus.js'
@@ -114,16 +114,29 @@ describe('precomputed dashboard evidence', () => {
     expect(html).toContain('Travel')
     expect(html).toContain('P90 · min')
     expect(html).toContain(analysis.stages[2].baseline_p90_min.toFixed(1))
-    expect(html).toContain('Stage medians do not add')
+    const chart = renderToStaticMarkup(<StageEvidence stages={analysis.stages} />)
+    expect(chart).toContain('Stage medians do not add')
+    expect(chart).toContain(analysis.stages[2].monitoring_p90_min.toFixed(1))
+    expect(renderToStaticMarkup(<StageEvidence stages={analysis.stages} showData />)).toContain('P90 · min')
+  })
+
+  it('reports the largest descriptive stage shift from supplied values', async () => {
+    const recovery = (await getDashboard('recovery')).analyses.C.stages
+    const top = largestStageShift(recovery)
+    expect(top.stage.stage).toBe('travel')
+    expect(top.measure).toBe('p90')
+    expect(top.delta).toBe(Math.round((recovery[2].monitoring_p90_min - recovery[2].baseline_p90_min) * 10) / 10)
+    expect(stageShift({ baseline_median_min: 1.02, monitoring_median_min: 1.0 }, 'median')).toBe(0)
+    expect(stageShift({ baseline_median_min: null, monitoring_median_min: 1.0 }, 'median')).toBeNull()
+    expect(largestStageShift([])).toBeNull()
   })
 
   it('never describes unavailable daily flags as no signal', async () => {
     const { summary } = await getDashboard('normal')
     summary.zones[0].deterioration_flag = null
     summary.zones[0].status = 'insufficient_evidence'
-    const overview = renderToStaticMarkup(<SummaryLine summary={summary} />)
-    expect(overview).toContain('Daily evidence incomplete')
-    expect(overview).not.toContain('No daily signals')
+    const overview = renderToStaticMarkup(<ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected="A" />)
+    expect(overview).toContain('Daily: unavailable')
     const point = { date: '2026-10-01', phase: 'monitoring', n: 100, late: 10, p: .1, cl: .1, ucl: .2, lcl: 0, status: 'ok', deterioration_flag: null }
     const table = renderToStaticMarkup(<DailyData points={[point]} />)
     expect(table).toContain('Evidence unavailable')
@@ -139,8 +152,6 @@ describe('precomputed dashboard evidence', () => {
     expect(initialFocus(morning.summary)).toMatchObject({ zone: 'D', view: 'where' })
     expect(initialFocus(recovery.summary)).toMatchObject({ zone: 'C', view: 'daily' })
     expect(morning.summary.zones.every((z) => z.deterioration_flag === false)).toBe(true)
-    expect(renderToStaticMarkup(<SummaryLine summary={morning.summary} />)).toContain('No daily signals')
-    expect(renderToStaticMarkup(<SummaryLine summary={morning.summary} />)).toContain('exploratory band signals')
     const custom = structuredClone(morning.summary)
     custom.time_of_day_all_zones = {}
     custom.slowest_incidents = [{ zone_id: 'F', response_min: 38 }]
@@ -187,9 +198,6 @@ describe('precomputed dashboard evidence', () => {
   it('never reports absent hourly/band service fields as zero signals', async () => {
     const { summary } = await getDashboard('normal')
     delete summary.time_of_day_all_zones
-    const html = renderToStaticMarkup(<SummaryLine summary={summary} />)
-    expect(html).toContain('Band evidence unavailable')
-    expect(html).not.toContain('0</b> exploratory band signals')
     const zone = renderToStaticMarkup(<ZoneOverview zones={summary.zones} selected="A" />)
     expect(zone).toContain('Bands: unavailable')
   })

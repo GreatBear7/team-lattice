@@ -133,27 +133,66 @@ export function BandChart({ bands }) {
   </div>
 }
 
+const stageNames = { call_handling: 'Call handling', turnout: 'Turnout', travel: 'Travel' }
+const stageSpans = { call_handling: 'Call → unit notified', turnout: 'Notified → en route', travel: 'En route → on scene' }
+const stageMeasures = [['median', 'Median'], ['p90', 'P90']]
+
+export function stageShift(row, measure) {
+  const base = row[`baseline_${measure}_min`], current = row[`monitoring_${measure}_min`]
+  return finite(base) && finite(current) ? Math.round((current - base) * 10) / 10 || 0 : null
+}
+
+function shiftLabel(delta) {
+  if (delta == null) return '—'
+  return delta === 0 ? '±0.0' : `${delta > 0 ? '+' : '−'}${Math.abs(delta).toFixed(1)}`
+}
+
+function shiftColor(delta) {
+  return delta == null || delta === 0 ? palette.muted : delta > 0 ? palette.red : palette.blue
+}
+
 export function StageChart({ stages }) {
-  const [plotRef, size] = useMeasuredPlot(340, 140, stages?.length)
+  const [plotRef, size] = useMeasuredPlot(720, 300, stages?.length)
   const rows = Array.isArray(stages) ? stages : []
   if (!rows.length) return <EmptyChart>No stage-duration summary available.</EmptyChart>
-  const w = size.width, h = size.height, left = 90, right = 42, top = 7, bottom = 24
-  const pw = w - left - right, rowH = (h - top - bottom) / rows.length
-  const maxValue = Math.max(1, ...rows.flatMap(row => [row.baseline_median_min, row.monitoring_median_min]).filter(finite))
-  const xmax = Math.ceil(maxValue * 1.18 / 2) * 2
+  const w = size.width, h = size.height
+  const narrow = w < 560
+  const left = narrow ? 84 : 210, right = narrow ? 50 : 84, top = 8, bottom = 28
+  const pw = Math.max(40, w - left - right)
+  const groupH = (h - top - bottom) / rows.length
+  const maxValue = Math.max(1, ...rows.flatMap(row => [row.baseline_median_min, row.monitoring_median_min, row.baseline_p90_min, row.monitoring_p90_min]).filter(finite))
+  const tickStep = maxValue > 12 ? 5 : maxValue > 6 ? 2 : 1
+  const xmax = Math.ceil(maxValue * 1.08 / tickStep) * tickStep
+  const ticks = Array.from({ length: xmax / tickStep + 1 }, (_, index) => index * tickStep)
   const x = value => left + value / xmax * pw
   return <div className="stage-chart">
-    <div className="chart-svg-wrap" ref={plotRef}><svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Baseline and monitoring median duration by response stage">
-      <desc>Separate, unstacked bars compare stage medians. Component medians must not be added to infer a median total response time. Stage durations do not establish a cause.</desc>
-      {[0, xmax / 2, xmax].map(value => <g key={value}><line x1={x(value)} x2={x(value)} y1={top - 6} y2={h - bottom} stroke={palette.grid} /><text x={x(value)} y={h - 8} textAnchor="middle" className="chart-axis-label">{value} min</text></g>)}
+    <div className="chart-svg-wrap" ref={plotRef}><svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Baseline to monitoring change in median and P90 duration for each response stage">
+      <desc>For each stage, a grey dot marks the baseline value and a teal dot the monitoring value, for the median and the P90 separately. The connecting line shows the descriptive change; it is not a statistical signal. Stage durations must not be added to infer a total response time and do not establish a cause.</desc>
+      {ticks.map(value => <g key={value} aria-hidden="true"><line x1={x(value)} x2={x(value)} y1={top} y2={h - bottom} stroke={palette.grid} /><text x={x(value)} y={h - 9} textAnchor="middle" className="chart-axis-label">{value}{value === xmax ? ' min' : ''}</text></g>)}
+      <text x={w - 4} y={top + 10} textAnchor="end" className="chart-phase-label">CHANGE</text>
       {rows.map((row, index) => {
-        const cy = top + rowH * (index + .5)
-        const label = ({ call_handling: 'Call handling', turnout: 'Turnout', travel: 'Travel' })[row.stage] || row.label
+        const y0 = top + groupH * index
         return <g key={row.stage}>
-          <title>{`${row.label}: baseline median ${minutes(row.baseline_median_min)}; monitoring median ${minutes(row.monitoring_median_min)}; monitoring P90 ${minutes(row.monitoring_p90_min)}.`}</title>
-          <text x={left - 11} y={cy + 4} textAnchor="end" className="chart-category-label">{label}</text>
-          {finite(row.baseline_median_min) && <><rect x={left} y={cy - 13} width={Math.max(0, x(row.baseline_median_min) - left)} height="10" fill={palette.baseline} rx="1" /><text x={x(row.baseline_median_min) + 6} y={cy - 5} className="chart-axis-label">{row.baseline_median_min.toFixed(1)}</text></>}
-          {finite(row.monitoring_median_min) && <><rect x={left} y={cy + 3} width={Math.max(0, x(row.monitoring_median_min) - left)} height="10" fill={palette.teal} rx="1" /><text x={x(row.monitoring_median_min) + 6} y={cy + 12} className="chart-value-label" fill={palette.teal}>{row.monitoring_median_min.toFixed(1)}</text></>}
+          {index > 0 && <line x1={0} x2={w} y1={y0} y2={y0} stroke="#edf1f4" />}
+          <text x={0} y={narrow ? y0 + 18 : y0 + groupH / 2 - 5} className="stage-name-label">{stageNames[row.stage] || row.label}</text>
+          {!narrow && <text x={0} y={y0 + groupH / 2 + 13} className="chart-axis-label">{stageSpans[row.stage] || ''}</text>}
+          {stageMeasures.map(([measure, measureLabel], m) => {
+            const cy = y0 + groupH * (narrow ? m === 0 ? .48 : .78 : m === 0 ? .36 : .68)
+            const base = row[`baseline_${measure}_min`], current = row[`monitoring_${measure}_min`]
+            const delta = stageShift(row, measure)
+            const color = shiftColor(delta)
+            const both = finite(base) && finite(current)
+            const lowIsBase = both ? base <= current : true
+            return <g key={measure}>
+              <title>{`${row.label} ${measureLabel}: baseline ${minutes(base)}, monitoring ${minutes(current)} (${shiftLabel(delta)} min).`}</title>
+              <text x={narrow ? 0 : left - 12} y={cy + 4} textAnchor={narrow ? 'start' : 'end'} className="stage-measure-label">{measureLabel}</text>
+              <line x1={left} x2={left + pw} y1={cy} y2={cy} stroke="#f1f4f6" strokeWidth="6" strokeLinecap="round" />
+              {both && <line x1={x(base)} x2={x(current)} y1={cy} y2={cy} stroke={color} strokeOpacity=".45" strokeWidth="4" strokeLinecap="round" />}
+              {finite(base) && <><circle cx={x(base)} cy={cy} r="5" fill="#fff" stroke={palette.baseline} strokeWidth="2.2" /><text x={x(base) + (lowIsBase ? -9 : 9)} y={cy + 4} textAnchor={lowIsBase ? 'end' : 'start'} className="chart-axis-label">{base.toFixed(1)}</text></>}
+              {finite(current) && <><circle cx={x(current)} cy={cy} r="5.5" fill={palette.teal} stroke="#fff" strokeWidth="1.5" /><text x={x(current) + (lowIsBase ? 9 : -9)} y={cy + 4} textAnchor={lowIsBase ? 'start' : 'end'} className="chart-value-label" fill={palette.teal}>{current.toFixed(1)}</text></>}
+              <text x={w - 4} y={cy + 4} textAnchor="end" className="chart-value-label" fill={color}>{shiftLabel(delta)}</text>
+            </g>
+          })}
         </g>
       })}
     </svg></div>
