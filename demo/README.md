@@ -1,6 +1,6 @@
 # Three-minute supervisor demo
 
-Start from the repository root with `bash app/testme.sh`, then open http://127.0.0.1:8000/. The top-right source reads **API data**. All numbers are computed from CSV by the backend, not the offline preview.
+**Live:** https://connect.systems-apps.com/response-watch/ (no install needed). **Local:** start from the repository root with `bash app/testme.sh`, then open http://127.0.0.1:8000/. The top-right source reads **API data**. All numbers are computed from CSV by the backend, not the offline preview.
 
 1. **Normal operations:** inspect all six districts. There should be no daily or time-band deterioration signals. E/F can remain above the 10% service target: chronic coverage performance differs from a new deterioration.
 2. **Recovery:** select C, then Daily p chart. Six days (October 1–6) exceed UCL; the last days return below it. Where & when shows C's midday/evening exploratory band signals. Inspect Delay stages to compare baseline and monitoring travel P90.

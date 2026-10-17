@@ -38,8 +38,9 @@ python data/generate_data.py
 (NEMSIS eTimes); see the codebook for the mapping and data-quality checks.
 
 **Limitations:** the data is synthetic; both planted problems are in travel time, so the
-data does not test whether the tool can tell a dispatch delay from a crew delay; zone C's
-evening-rush band shows one expected chance flag (30 unadjusted comparisons). Details in
+data does not test whether the tool can tell a dispatch delay from a crew delay; the
+time-band view makes 30 unadjusted comparisons, so a chance flag is possible in other data
+(none occurs in these three files). Details in
 [`data/README.md`](data/README.md#limitations-and-known-features).
 
 ### Demo walkthrough (data side)
