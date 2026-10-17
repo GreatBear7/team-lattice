@@ -357,17 +357,8 @@ if (DIST / "index.html").is_file():
         app.mount("/assets", StaticFiles(directory=DIST / "assets"), name="assets")
 
     @app.get("/", include_in_schema=False)
-    def home():
-        page = DIST / "home.html"  # landing page (frontend/public/home.html, copied by Vite)
-        return FileResponse(page if page.is_file() else DIST / "index.html")
-
-    @app.get("/app", include_in_schema=False)
-    def dashboard():
+    def index():
         return FileResponse(DIST / "index.html")
-
-    @app.get("/guide", include_in_schema=False)
-    def guide():
-        return FileResponse(DIST / "guide.html")
 else:
     @app.get("/", include_in_schema=False)
     def index():
