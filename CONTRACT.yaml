@@ -145,9 +145,9 @@ tasks:
   - id: H-07
     title: README and function documentation
     points: "10 - Tool Documentation: excellent, easy-to-follow documentation"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: in_progress
+    owner: "Claire / Codex (documentation)"
+    started_at: "2026-10-17"
     owns: ["README.md", "app/README.md"]
     notes: >
       Replace the hackathon README.md with your tool's README; the event
@@ -157,7 +157,7 @@ tasks:
       how each function or endpoint works, how to run it in one command, the
       live URL, and links demo/README.md. A teammate who did not write the
       code follows it from a fresh clone and it works.
-    result: "Tool README, app setup/API documentation and demo/README.md written; local one-command run verified. Fresh-clone teammate walkthrough and public URL pending, so not marked done."
+    result: "Root README rewritten for latest main: manager briefing, Home/Guide navigation, three datasets, CSV inputs, statistical interpretation, API, local run and deployment. Link/diff checks passed; fresh-clone teammate walkthrough remains pending. Not marked done."
 
   - id: H-08
     title: Reproducible public repo, submitted on Devpost
