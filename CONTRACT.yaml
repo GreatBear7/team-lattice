@@ -74,9 +74,9 @@ tasks:
   - id: H-04
     title: Working tool - one demo copied to app/ and wired to the H-03 function
     points: "25 - Tool Implementation: an effective, working tool (does it run?)"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: in_progress
+    owner: "Claire (C), Codex: frontend only"
+    started_at: "2026-10-16 17:46"
     owns: ["app/"]
     notes: >
       Copy ONE folder from demos/ (the one named in SPEC section 5) to app/.
@@ -86,7 +86,18 @@ tasks:
       The testme script in app/ starts the tool with one command, and a call
       on one data/ file (endpoint, function call or app upload) returns the
       same numbers as the H-03 known-answer test.
-    result: ""
+    frontend_scope:
+      owns: ["app/frontend/", "PRODUCT.md", "DESIGN.md", ".impeccable/"]
+      status: in_progress
+      notes: >
+        User authorized the compact supervisor dashboard redesign with
+        latest three scenarios (normal/recovery/morning_tail), all six zones,
+        focused evidence triage, daily p charts, hourly heatmap and band views,
+        baseline/monitoring stage P90, CSV/API client integration, and design records. Backend
+        scaffolding and scripts remain D-owned; app/qc.py and root tests
+        remain B-owned. Do not copy a backend scaffold over these paths.
+      definition_of_done: "npm --prefix app/frontend test && npm --prefix app/frontend run build"
+    result: "C frontend update in progress against dev f6a1e52; D backend/deployment remains pending."
 
   - id: H-05
     title: Demonstration of the tool on every test dataset
