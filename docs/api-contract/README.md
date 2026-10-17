@@ -9,8 +9,10 @@ sections 3, 5 and 7. Status: **draft by B, waiting for C and D to agree**.
 - **C** builds the screens from the two `*.mock.json` files.
 - **D** returns these files from the endpoints until `app/qc.py` is ready, then swaps in real calls.
 - **B** makes `app/qc.py` produce exactly these fields (plus tests).
-- Mock files carry `"mock": true`. Their numbers are invented (hidden_tail-like story) but
-  internally consistent: every `ucl`/`lcl` is computed from the mock counts with the plan's formula.
+- Mock files carry `"mock": true`. Their numbers are invented (an illustrative zone C slowdown
+  that lasts to Oct 11, drafted before the final datasets) but internally consistent: every
+  `ucl`/`lcl` is computed from the mock counts with the plan's formula. Real numbers for the final
+  datasets come from `app/qc.py` once D wires it in.
 - Changing a field name after agreement needs a message to all three of B, C and D.
 
 ## Conventions
@@ -45,14 +47,14 @@ sections 3, 5 and 7. Status: **draft by B, waiting for C and D to agree**.
 ### `POST /datasets/load`
 
 Request, one of:
-- JSON `{ "scenario": "normal" | "hidden_tail" | "recovery" }`
+- JSON `{ "scenario": "normal" | "recovery" | "morning_tail" }` (the three files in `data/`)
 - multipart form upload, field `file` = a CSV with the schema in Final_Plan section 3
 
 Response 200:
 
 ```json
 {
-  "dataset_id": "hidden_tail",
+  "dataset_id": "recovery",
   "source": "scenario",
   "rows": 16800,
   "zones": ["A", "B", "C", "D", "E", "F"],
@@ -74,7 +76,8 @@ Response 422 (invalid upload; nothing loaded):
 }
 ```
 
-The loaded dataset lives in server memory; after a restart the UI must load again.
+The loaded dataset lives in server memory; after a restart the UI must load again. The API keeps
+`qc.prepare(df)` of it (validated and parsed once), so later requests are fast.
 
 ### `GET /zones/summary`
 
@@ -149,6 +152,9 @@ Unknown `zone_id`: 404 `{ "error": "unknown zone" }`. No dataset loaded: 409
 `{ "error": "no dataset loaded" }`.
 
 ## What the mock data shows (so C can build every state)
+
+Illustrative only; the final datasets are `normal`, `recovery` (zone C flagged Oct 1-6, then back in
+control) and `morning_tail` (no daily flags; zone D morning_rush band flagged). See `data/README.md`.
 
 - A, B (downtown): under the 10% target, not flagged.
 - C (residential): above target **and** flagged from 2026-10-01 (day 18); travel median rises.

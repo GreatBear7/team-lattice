@@ -191,3 +191,39 @@ def test_numeric_zone_ids_are_counted_not_lost():
         r["zone_id"] = 1
     c = cell(qc.late_rate_change_by_hour(pd.DataFrame(rows)), "1", 8)
     assert (c["baseline_n"], c["monitoring_n"]) == (10, 10)
+
+
+# ---- prepare once (speed): identical results, raw or prepared ---------------------
+def _all_outputs(df):
+    out = {}
+    for z in "ABCDEF":
+        out[z] = (qc.zone_summary(df, z), qc.daily_p_chart(df, z), qc.late_rate_by_band(df, z),
+                  qc.stage_summary(df, z), qc.slowest_incidents(df, zone_id=z),
+                  qc.late_rate_by_band(df, z, monitoring_start="2026-10-05"))
+    out["hours"] = qc.late_rate_change_by_hour(df)
+    out["hours3"] = qc.late_rate_change_by_hour(df, smooth_hours=3)
+    out["bands"] = qc.bands_all_zones(df)
+    return out
+
+
+def test_prepared_table_gives_identical_results_on_fixture():
+    rows = []
+    for z in "CA":
+        rows += calls(z, BASE_DAYS, 8, 100, 20) + calls(z, MON_DAYS, 17, 100, 40, start=100)
+    df = pd.DataFrame(rows)
+    assert _all_outputs(qc.prepare(df)) == _all_outputs(df)
+
+
+def test_prepare_rejects_invalid_rows_and_is_not_mutated():
+    rows = calls("A", BASE_DAYS, 8, 20, 5)
+    bad = pd.DataFrame(rows); bad.loc[0, "on_scene_at"] = None
+    with pytest.raises(ValueError):
+        qc.prepare(bad)
+    prepared = qc.prepare(pd.DataFrame(rows)); cols = list(prepared.columns)
+    qc.daily_p_chart(prepared, "A"); qc.late_rate_change_by_hour(prepared)
+    assert list(prepared.columns) == cols  # functions work on copies
+
+
+def test_prepared_table_gives_identical_results_on_data():
+    df = _load("recovery.csv")
+    assert _all_outputs(qc.prepare(df)) == _all_outputs(df)

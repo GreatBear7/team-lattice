@@ -28,7 +28,7 @@ Updated 2026-10-16 by Saptarshi (B).
 ## A: data, branch `h02-data`
 
 - Owns `data/`. Not blocked: start now.
-- `data/generate_data.py` (seed 5300) -> `normal.csv`, `hidden_tail.csv`, `recovery.csv`,
+- `data/generate_data.py` (seed 5300) -> `normal.csv`, `recovery.csv`, `morning_tail.csv`,
   plus `scenario_truth.json` and `data/README.md` (codebook).
 - Use the zone profiles in Final_Plan 4.1 (A/B 5 min, C/D 6 min, E/F 7.5 min routine travel),
   hourly weights and x1.3 rush (4.2). Column names exactly as Final_Plan section 3.
@@ -65,4 +65,7 @@ Updated 2026-10-16 by Saptarshi (B).
 - Serve C's React build from FastAPI (one app). **Deploy the mock version to Posit Connect
   early** (`connect-publish` skill); keys go in GitHub repo secrets only.
 - When B's tests pass: swap the mocks for calls into `app/qc.py`; the JSON must not change.
+- **Speed:** at `POST /datasets/load`, call `qc.validate_incidents(df)` (return 422 with its list if
+  not empty), then keep `prepared = qc.prepare(df)` in memory and pass `prepared` to every `qc`
+  function. Same results, about 50x faster (all zones: 0.17 s instead of 9 s).
 - Upload validation (row, field, reason) can be built now; it is not statistics.

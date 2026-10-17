@@ -201,6 +201,8 @@ def add_timing_components(df):
     local_date (America/New_York date of unit_notified_at, a datetime.date).
     Raises ValueError if validate_incidents finds any problem (nothing is imputed).
     """
+    if df.attrs.get(_PREPARED):
+        return df.copy()  # already validated and parsed by prepare(); copy so callers can add columns
     if len(df) == 0:
         out = df.copy()
         for col in ["call_handling_min", "turnout_min", "travel_min", "response_min",
@@ -221,6 +223,21 @@ def add_timing_components(df):
     out["notified_utc"] = ts["unit_notified_at"]
     out["on_scene_utc"] = ts["on_scene_at"]
     out["local_date"] = ts["unit_notified_at"].dt.tz_convert(TIMEZONE).dt.date
+    return out
+
+
+_PREPARED = "responsewatch_prepared"
+
+
+def prepare(df):
+    """Validate and parse an incident table once; pass the result to any function in this module.
+
+    Every statistic accepts either the raw table or this prepared one and returns identical results;
+    the prepared one skips re-validating and re-parsing the timestamps on every call (an API can do
+    this once at POST /datasets/load). Raises ValueError on invalid rows, like add_timing_components.
+    """
+    out = add_timing_components(df)
+    out.attrs[_PREPARED] = True
     return out
 
 
@@ -327,7 +344,8 @@ def daily_p_chart(df, zone_id=None, T=DEFAULT_T, q=DEFAULT_Q, baseline_end=DEFAU
 
     # One point per calendar day of the whole table (all zones), so a day with no incidents in
     # this zone still appears, as n = 0 / "no_data", instead of silently disappearing.
-    all_dates = _to_utc(df["unit_notified_at"]).dt.tz_convert(TIMEZONE).dt.date
+    all_dates = (df["notified_utc"] if df.attrs.get(_PREPARED)
+                 else _to_utc(df["unit_notified_at"])).dt.tz_convert(TIMEZONE).dt.date
     first, last = all_dates.min(), all_dates.max()
     cut = _baseline_end_date(baseline_end)
     by_date = {r.local_date: (int(r.n), int(r.late)) for r in days.itertuples()}
