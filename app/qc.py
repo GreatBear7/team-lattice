@@ -6,6 +6,8 @@ Method (docs/Final_Plan.en.md sections 3, 5.1-5.3):
       (weighted), limits p0 +/- 3 * sqrt(p0 * (1 - p0) / n_i) clipped to [0, 1].
       Deterioration flag: p_i > UCL_i (strict), monitoring days only.
     - above_service_target: late_rate > q (q = 0.10). It is independent of the flag.
+    - Time of day (5.4): pooled band comparison with the same limit rule (late_rate_by_band), and
+      descriptive hourly cells for the heatmap / 24-hour clock (late_rate_change_by_hour).
 
 Conventions:
     - Times are minutes, rates are proportions 0-1.
@@ -440,7 +442,9 @@ STAGES = [
 
 
 def stage_summary(df, zone_id=None, baseline_end=DEFAULT_BASELINE_END):
-    """Per stage: baseline median, monitoring median and monitoring P90 (minutes; None if empty)."""
+    """Per stage: baseline and monitoring median and P90 (minutes; None if empty).
+
+    The P90s show a slower tail even when the medians barely move (few calls affected)."""
     d = _prepare(df, zone_id, baseline_end)
     out = []
     for key, label, start, end, col in STAGES:
@@ -450,6 +454,7 @@ def stage_summary(df, zone_id=None, baseline_end=DEFAULT_BASELINE_END):
             "stage": key, "label": label, "from": start, "to": end,
             "baseline_median_min": median(base),
             "monitoring_median_min": median(mon),
+            "baseline_p90_min": percentile_linear(base, 0.9),
             "monitoring_p90_min": percentile_linear(mon, 0.9),
         })
     return out
@@ -499,15 +504,32 @@ def _compare_band(key, label, start, end, baseline_n, baseline_late, n, late, zo
     return item
 
 
-def late_rate_by_band(df, zone_id, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_END):
+def _monitoring_window(d, monitoring_start, baseline_end):
+    """Drop monitoring rows before monitoring_start (an ISO local date, e.g. "2026-10-05").
+
+    The baseline is never touched. None keeps the whole monitoring period. monitoring_start must
+    not fall inside the baseline.
+    """
+    if monitoring_start is None or len(d) == 0:
+        return d
+    start = pd.Timestamp(monitoring_start).date()
+    if start < _baseline_end_date(baseline_end):
+        raise ValueError("monitoring_start must be on or after the baseline end")
+    keep = (d["phase"] == "baseline") | (d["local_date"] >= start)
+    return d[keep].copy()
+
+
+def late_rate_by_band(df, zone_id, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_END,
+                      monitoring_start=None):
     """Five time bands for one zone: pooled monitoring late rate vs that band's baseline p0.
 
     Same limit formula and strict p > UCL rule as the daily chart, with n = the band's pooled
     monitoring count. Exploratory: 6 zones x 5 bands = 30 unadjusted comparisons.
     The zone must first pass the 14-day baseline check (else every band is baseline_insufficient);
     each band then needs >= 5 late and >= 5 non-late baseline incidents and n*p0, n*(1-p0) >= 5.
+    monitoring_start (ISO local date) limits monitoring to that date onward, e.g. the last 7 days.
     """
-    d = _prepare(df, zone_id, baseline_end)
+    d = _monitoring_window(_prepare(df, zone_id, baseline_end), monitoring_start, baseline_end)
     if len(d) == 0:
         return [_compare_band(k, lab, s, e, 0, 0, 0, 0, True) for k, lab, s, e in BANDS]
     d["is_late"] = d["response_min"] > T
@@ -522,4 +544,76 @@ def late_rate_by_band(df, zone_id, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_EN
         m = d[(d["phase"] == "monitoring") & (d["band"] == key)]
         out.append(_compare_band(key, label, start, end, len(b), int(b["is_late"].sum()),
                                  len(m), int(m["is_late"].sum()), zone_ok))
+    return out
+
+
+def bands_all_zones(df, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_END, monitoring_start=None):
+    """late_rate_by_band for every zone in the table: {zone_id: [5 band items]}, zones sorted."""
+    if len(df) == 0:
+        return {}
+    return {z: late_rate_by_band(df, z, T, baseline_end, monitoring_start)
+            for z in sorted(df["zone_id"].astype(str).unique())}
+
+
+# =====================================================================
+# 7. Hourly cells for the heatmap and 24-hour clock (descriptive)
+# =====================================================================
+def late_rate_change_by_hour(df, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_END,
+                             monitoring_start=None, smooth_hours=1):
+    """Per zone and local hour (0-23): baseline vs monitoring late rate and the change.
+
+    Descriptive and exploratory: 6 zones x 24 hours = 144 cells and no per-cell flag (each cell has
+    only about 20-110 calls); the statistical flags are the time bands (late_rate_by_band).
+    Returns a list of dicts ordered by zone_id then hour, always covering zones A-F (a zone with no
+    calls gets no_data cells) plus any other zone present: 144 cells for the agreed data. [] for an
+    empty table.
+
+    Each item: zone_id, hour, smooth_hours, baseline_n, baseline_late, p_baseline, monitoring_n,
+    monitoring_late, p_monitoring, change_pts = 100 * (p_monitoring - p_baseline), status:
+      - "no_data" when either side has no calls (that side's rate and change_pts are None);
+      - "insufficient_evidence" when the baseline has < 5 late or < 5 non-late calls (rates and
+        change_pts kept; the UI greys the cell);
+      - otherwise "ok".
+    smooth_hours (odd int, 1-23) pools the counts of a centred circular window of hours, e.g. 3
+    pools hours h-1, h and h+1 (23 wraps to 0). It is for the clock drawing; 1 means raw hourly
+    cells. Statuses use the pooled counts, so a smoothed cell can be "ok" when its raw cell is not.
+    monitoring_start (ISO local date) limits monitoring to that date onward.
+    """
+    if not isinstance(smooth_hours, int) or smooth_hours < 1 or smooth_hours > 23 or smooth_hours % 2 == 0:
+        raise ValueError("smooth_hours must be an odd number from 1 to 23")
+    d = _monitoring_window(_prepare(df, None, baseline_end), monitoring_start, baseline_end)
+    if len(d) == 0:
+        return []
+    d["is_late"] = d["response_min"] > T
+    d["hour"] = d["notified_utc"].dt.tz_convert(TIMEZONE).dt.hour
+    d["zone_key"] = d["zone_id"].astype(str)
+    counts = (d.groupby(["zone_key", "phase", "hour"])["is_late"].agg(n="size", late="sum"))
+    half = smooth_hours // 2
+
+    def pooled(zone, phase, hour):
+        n = late = 0
+        for k in range(-half, half + 1):
+            key = (zone, phase, (hour + k) % 24)
+            if key in counts.index:
+                n += int(counts.loc[key, "n"]); late += int(counts.loc[key, "late"])
+        return n, late
+
+    out = []
+    for zone in sorted(set(ZONE_TYPES) | set(d["zone_key"].unique())):
+        for hour in range(24):
+            bn, bl = pooled(zone, "baseline", hour)
+            mn, ml = pooled(zone, "monitoring", hour)
+            pb = bl / bn if bn else None
+            pm = ml / mn if mn else None
+            change = 100 * (pm - pb) if bn and mn else None
+            if not bn or not mn:
+                status = "no_data"
+            elif bl < MIN_BASELINE_EACH or bn - bl < MIN_BASELINE_EACH:
+                status = "insufficient_evidence"
+            else:
+                status = "ok"
+            out.append({"zone_id": zone, "hour": hour, "smooth_hours": smooth_hours,
+                        "baseline_n": bn, "baseline_late": bl, "p_baseline": pb,
+                        "monitoring_n": mn, "monitoring_late": ml, "p_monitoring": pm,
+                        "change_pts": change, "status": status})
     return out

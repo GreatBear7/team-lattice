@@ -20,6 +20,11 @@ Updated 2026-10-16 by Saptarshi (B).
   late rate, P90, stages, slowest five, service-target label, then `late_rate_by_band`.
 - Output of `qc.py` will match the field names in `docs/api-contract/`.
 
+- **H-10 (time-of-day statistics) added in PR #1:** `late_rate_change_by_hour` (144 hourly cells
+  for the heatmap and the 24-hour clock, optional 3-hour smoothing), a 7/14-day `monitoring_start`
+  window, `bands_all_zones`, and `baseline_p90_min` in the stage summary. New API fields are in
+  `docs/api-contract/README.md` ("Added in H-10"). For C and D, **after the core deploy**.
+
 ## A: data, branch `h02-data`
 
 - Owns `data/`. Not blocked: start now.
@@ -32,6 +37,14 @@ Updated 2026-10-16 by Saptarshi (B).
 
 ## C: front end, branch `h04-frontend`
 
+- **After the core deploy (H-10 views):** a zone x hour grid heatmap and a 24-hour clock (one ring
+  per zone, angle = hour), both from `hour_heatmap.cells`; colour = `change_pts` on a diverging
+  red-blue scale, grey midpoint at 0, symmetric -25..+25 points (labels in points, not %);
+  `insufficient_evidence` / `no_data` cells flat grey and hatched; black outlines from
+  `time_of_day_all_zones` where `flag` is true; a 7-day / 14-day toggle. Previews:
+  `ideas/heatmap/` and the clock images on `temp-ideas`. Colours are descriptive; only outlines
+  are flags. Say so in a footnote.
+
 - Owns `app/frontend/`. Not blocked: start from the mock files now.
 - Screens: scenario picker / CSV upload, zone table (both labels separately), daily p chart per
   zone (CL, UCL, LCL, red flagged days), zone detail (stages, five time-band bars with UCL,
@@ -41,6 +54,10 @@ Updated 2026-10-16 by Saptarshi (B).
 - Read `docs/api-contract/README.md` now and reply with any field you need renamed or added.
 
 ## D: back end and release, branch `h04-backend`
+
+- **After the core deploy (H-10 fields):** add `hour_heatmap` and `time_of_day_all_zones` to
+  `GET /zones/summary`, the `window` (7 / 14) and `smooth` (1 / 3) query parameters, and pass
+  `baseline_p90_min` through in `stages[]`. All numbers come from `app/qc.py`; nothing computed in the API.
 
 - Owns `app/` except `app/qc.py` and `app/frontend/`, plus `.github/workflows/`. Not blocked.
 - Copy `demos/fastapi/` into `app/`, get `testme` running, return the mock JSON from

@@ -179,3 +179,25 @@ tasks:
     definition_of_done: >
       python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/Final_Plan.md', 'docs/Final_Plan.en.md')); print('PASS: canonical final plans and index exist')" && git diff --check
     result: "Functional-zone profiles and independent service-target/deterioration labels added to both Final_Plan files and index; realized-rate caveats, bilingual, numeric, link, YAML and diff checks pass."
+
+  - id: H-10
+    title: Time-of-day statistics for the hourly heatmap and 24-hour clock views
+    points: "Supports 25 - valid analyses (when in the day) and 10 - clear demonstration"
+    status: done
+    owner: "Saptarshi"
+    started_at: "2026-10-16 20:35"
+    owns: ["app/qc.py", "tests/", "docs/api-contract/", "docs/team-notes.md"]
+    notes: >
+      Statistics only; drawing the grid and the clock is C's front-end work and
+      passing the fields through the API is D's. Spec: ideas/heatmap/README.md
+      on temp-ideas (Kaushik). Adds late_rate_change_by_hour (144 descriptive
+      cells, optional circular smoothing for the clock), a monitoring_start
+      window for the 7/14-day toggle, bands for all zones, and baseline_p90_min
+      in the stage summary. Extra view: C and D wire it in after the core deploy.
+    definition_of_done: >
+      .venv/bin/python -m pytest tests -q passes, including the spec's known
+      answer (20% -> 50% gives +30.0 points), hour boundaries, empty and thin
+      cells, and the morning_tail integration values (zone D hours 06-09:
+      +16.8, +15.3, +22.5, +22.1); an independent stats review passes; the API
+      contract lists the new fields.
+    result: "late_rate_change_by_hour (144 cells, optional 3-h smoothing), 7/14-day window, bands_all_zones, baseline_p90_min; 83 tests pass (96 with H-02 data); stats-reviewer PASS"
