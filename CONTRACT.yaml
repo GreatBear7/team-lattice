@@ -28,9 +28,9 @@ tasks:
   - id: H-01
     title: Fill in every FILL IN line in SPEC.md
     points: "15 - Tool Design: scope matches a prompt (5), clear user and use case (5), minimal inputs (5)"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: in_progress
+    owner: "Claire / Codex"
+    started_at: "2026-10-17"
     owns: ["SPEC.md"]
     notes: >
       Do this together, out loud, right after kickoff. The prompts are in
@@ -40,7 +40,7 @@ tasks:
       grep -c "FILL IN[.,]" SPEC.md prints 0 (it counts only the blanks,
       not the instructions at the top), and every teammate can say the
       method sentence in SPEC section 4 without reading it.
-    result: ""
+    result: "SPEC populated from the approved scope and current implementation; user confirmed team-lattice; Prompt 2 recorded by A codebook; zero FILL IN answer lines; four cited known-answer/boundary tests passed. Formal four-member method walkthrough remains to be checked, so H-01 is not marked done solely on template completion."
 
   - id: H-02
     title: Two or three test datasets plus a codebook
