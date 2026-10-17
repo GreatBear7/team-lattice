@@ -1,0 +1,180 @@
+{
+  "mock": true,
+  "scenario": "illustrative",
+  "units": {
+    "time": "minutes",
+    "rate": "proportion 0-1"
+  },
+  "settings": {
+    "T_min": 12,
+    "q": 0.1,
+    "priority": "high",
+    "timezone": "America/New_York"
+  },
+  "baseline": {
+    "start": "2026-09-14",
+    "end_exclusive": "2026-09-28T00:00:00-04:00",
+    "days": 14
+  },
+  "monitoring": {
+    "start": "2026-09-28",
+    "end": "2026-10-11",
+    "days": 14
+  },
+  "excluded": {
+    "count": 0,
+    "reasons": []
+  },
+  "zones": [
+    {
+      "zone_id": "A",
+      "zone_type": "downtown",
+      "n": 1400,
+      "late": 114,
+      "late_rate": 0.0814,
+      "p90_min": 11.4,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 121,
+      "p0": 0.0864,
+      "above_service_target": false,
+      "deterioration_flag": false,
+      "deterioration_days": 0,
+      "first_flag_date": null,
+      "last_flag_date": null,
+      "status": "ok"
+    },
+    {
+      "zone_id": "B",
+      "zone_type": "downtown",
+      "n": 1400,
+      "late": 134,
+      "late_rate": 0.0957,
+      "p90_min": 11.6,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 148,
+      "p0": 0.1057,
+      "above_service_target": false,
+      "deterioration_flag": false,
+      "deterioration_days": 0,
+      "first_flag_date": null,
+      "last_flag_date": null,
+      "status": "ok"
+    },
+    {
+      "zone_id": "C",
+      "zone_type": "residential",
+      "n": 1400,
+      "late": 374,
+      "late_rate": 0.2671,
+      "p90_min": 14.9,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 172,
+      "p0": 0.1229,
+      "above_service_target": true,
+      "deterioration_flag": true,
+      "deterioration_days": 11,
+      "first_flag_date": "2026-10-01",
+      "last_flag_date": "2026-10-11",
+      "status": "ok"
+    },
+    {
+      "zone_id": "D",
+      "zone_type": "residential",
+      "n": 1400,
+      "late": 168,
+      "late_rate": 0.12,
+      "p90_min": 12.2,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 171,
+      "p0": 0.1221,
+      "above_service_target": true,
+      "deterioration_flag": false,
+      "deterioration_days": 0,
+      "first_flag_date": null,
+      "last_flag_date": null,
+      "status": "ok"
+    },
+    {
+      "zone_id": "E",
+      "zone_type": "outer",
+      "n": 1400,
+      "late": 335,
+      "late_rate": 0.2393,
+      "p90_min": 15.1,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 308,
+      "p0": 0.22,
+      "above_service_target": true,
+      "deterioration_flag": false,
+      "deterioration_days": 0,
+      "first_flag_date": null,
+      "last_flag_date": null,
+      "status": "ok"
+    },
+    {
+      "zone_id": "F",
+      "zone_type": "outer",
+      "n": 1400,
+      "late": 311,
+      "late_rate": 0.2221,
+      "p90_min": 14.8,
+      "p90_warning": null,
+      "baseline_n": 1400,
+      "baseline_late": 292,
+      "p0": 0.2086,
+      "above_service_target": true,
+      "deterioration_flag": false,
+      "deterioration_days": 0,
+      "first_flag_date": null,
+      "last_flag_date": null,
+      "status": "ok"
+    }
+  ],
+  "slowest_incidents": [
+    {
+      "incident_id": "INC-C-0417",
+      "zone_id": "C",
+      "unit_notified_at": "2026-10-03T17:42:00-04:00",
+      "on_scene_at": "2026-10-03T18:09:24-04:00",
+      "response_min": 27.4,
+      "minutes_over_target": 15.4
+    },
+    {
+      "incident_id": "INC-E-0233",
+      "zone_id": "E",
+      "unit_notified_at": "2026-10-05T08:05:00-04:00",
+      "on_scene_at": "2026-10-05T08:30:54-04:00",
+      "response_min": 25.9,
+      "minutes_over_target": 13.9
+    },
+    {
+      "incident_id": "INC-C-0388",
+      "zone_id": "C",
+      "unit_notified_at": "2026-10-03T18:10:00-04:00",
+      "on_scene_at": "2026-10-03T18:34:36-04:00",
+      "response_min": 24.6,
+      "minutes_over_target": 12.6
+    },
+    {
+      "incident_id": "INC-F-0102",
+      "zone_id": "F",
+      "unit_notified_at": "2026-10-05T16:55:00-04:00",
+      "on_scene_at": "2026-10-05T17:18:48-04:00",
+      "response_min": 23.8,
+      "minutes_over_target": 11.8
+    },
+    {
+      "incident_id": "INC-C-0291",
+      "zone_id": "C",
+      "unit_notified_at": "2026-10-03T07:31:00-04:00",
+      "on_scene_at": "2026-10-03T07:53:30-04:00",
+      "response_min": 22.5,
+      "minutes_over_target": 10.5
+    }
+  ]
+}

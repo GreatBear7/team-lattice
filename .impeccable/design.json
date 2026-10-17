@@ -1,0 +1,627 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T05:29:02.085612+00:00",
+  "title": "Design System: ResponseWatch",
+  "extensions": {
+    "colorMeta": {
+      "teal": {
+        "role": "primary",
+        "displayName": "Instrument Teal",
+        "canonical": "#087d77",
+        "tonalRamp": [
+          "oklch(15.00% 0.09072 188.85)",
+          "oklch(26.43% 0.09072 188.85)",
+          "oklch(37.86% 0.09072 188.85)",
+          "oklch(49.29% 0.09072 188.85)",
+          "oklch(60.71% 0.09072 188.85)",
+          "oklch(72.14% 0.09072 188.85)",
+          "oklch(83.57% 0.09072 188.85)",
+          "oklch(95.00% 0.09072 188.85)"
+        ]
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Interface Signal Coral",
+        "canonical": "#bd4135",
+        "tonalRamp": [
+          "oklch(15.00% 0.16166 28.90)",
+          "oklch(26.43% 0.16166 28.90)",
+          "oklch(37.86% 0.16166 28.90)",
+          "oklch(49.29% 0.16166 28.90)",
+          "oklch(60.71% 0.16166 28.90)",
+          "oklch(72.14% 0.16166 28.90)",
+          "oklch(83.57% 0.16166 28.90)",
+          "oklch(95.00% 0.16166 28.90)"
+        ]
+      },
+      "amber": {
+        "role": "tertiary",
+        "displayName": "Target Amber",
+        "canonical": "#94610f",
+        "tonalRamp": [
+          "oklch(15.00% 0.10969 71.78)",
+          "oklch(26.43% 0.10969 71.78)",
+          "oklch(37.86% 0.10969 71.78)",
+          "oklch(49.29% 0.10969 71.78)",
+          "oklch(60.71% 0.10969 71.78)",
+          "oklch(72.14% 0.10969 71.78)",
+          "oklch(83.57% 0.10969 71.78)",
+          "oklch(95.00% 0.10969 71.78)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink",
+        "canonical": "#223440",
+        "tonalRamp": [
+          "oklch(15.00% 0.03187 238.29)",
+          "oklch(26.43% 0.03187 238.29)",
+          "oklch(37.86% 0.03187 238.29)",
+          "oklch(49.29% 0.03187 238.29)",
+          "oklch(60.71% 0.03187 238.29)",
+          "oklch(72.14% 0.03187 238.29)",
+          "oklch(83.57% 0.03187 238.29)",
+          "oklch(95.00% 0.03187 238.29)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate Annotation",
+        "canonical": "#5b6c78",
+        "tonalRamp": [
+          "oklch(15.00% 0.02792 238.85)",
+          "oklch(26.43% 0.02792 238.85)",
+          "oklch(37.86% 0.02792 238.85)",
+          "oklch(49.29% 0.02792 238.85)",
+          "oklch(60.71% 0.02792 238.85)",
+          "oklch(72.14% 0.02792 238.85)",
+          "oklch(83.57% 0.02792 238.85)",
+          "oklch(95.00% 0.02792 238.85)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Seam Gray",
+        "canonical": "#dce3e7",
+        "tonalRamp": [
+          "oklch(15.00% 0.00933 232.37)",
+          "oklch(26.43% 0.00933 232.37)",
+          "oklch(37.86% 0.00933 232.37)",
+          "oklch(49.29% 0.00933 232.37)",
+          "oklch(60.71% 0.00933 232.37)",
+          "oklch(72.14% 0.00933 232.37)",
+          "oklch(83.57% 0.00933 232.37)",
+          "oklch(95.00% 0.00933 232.37)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Instrument Surface",
+        "canonical": "#fff",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Cool Workbench Ground",
+        "canonical": "#f2f5f6",
+        "tonalRamp": [
+          "oklch(15.00% 0.00348 219.53)",
+          "oklch(26.43% 0.00348 219.53)",
+          "oklch(37.86% 0.00348 219.53)",
+          "oklch(49.29% 0.00348 219.53)",
+          "oklch(60.71% 0.00348 219.53)",
+          "oklch(72.14% 0.00348 219.53)",
+          "oklch(83.57% 0.00348 219.53)",
+          "oklch(95.00% 0.00348 219.53)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Keyboard Focus Blue",
+        "canonical": "#1267ae",
+        "tonalRamp": [
+          "oklch(15.00% 0.13517 250.14)",
+          "oklch(26.43% 0.13517 250.14)",
+          "oklch(37.86% 0.13517 250.14)",
+          "oklch(49.29% 0.13517 250.14)",
+          "oklch(60.71% 0.13517 250.14)",
+          "oklch(72.14% 0.13517 250.14)",
+          "oklch(83.57% 0.13517 250.14)",
+          "oklch(95.00% 0.13517 250.14)"
+        ]
+      },
+      "selected-surface": {
+        "role": "primary",
+        "displayName": "Selected Zone Wash",
+        "canonical": "#eaf5f3",
+        "tonalRamp": [
+          "oklch(15.00% 0.01193 184.08)",
+          "oklch(26.43% 0.01193 184.08)",
+          "oklch(37.86% 0.01193 184.08)",
+          "oklch(49.29% 0.01193 184.08)",
+          "oklch(60.71% 0.01193 184.08)",
+          "oklch(72.14% 0.01193 184.08)",
+          "oklch(83.57% 0.01193 184.08)",
+          "oklch(95.00% 0.01193 184.08)"
+        ]
+      },
+      "selected-line": {
+        "role": "primary",
+        "displayName": "Selected Zone Inset",
+        "canonical": "#a2cec7",
+        "tonalRamp": [
+          "oklch(15.00% 0.04728 184.40)",
+          "oklch(26.43% 0.04728 184.40)",
+          "oklch(37.86% 0.04728 184.40)",
+          "oklch(49.29% 0.04728 184.40)",
+          "oklch(60.71% 0.04728 184.40)",
+          "oklch(72.14% 0.04728 184.40)",
+          "oklch(83.57% 0.04728 184.40)",
+          "oklch(95.00% 0.04728 184.40)"
+        ]
+      },
+      "warning-surface": {
+        "role": "tertiary",
+        "displayName": "Caution Wash",
+        "canonical": "#fff8e9",
+        "tonalRamp": [
+          "oklch(15.00% 0.02110 85.94)",
+          "oklch(26.43% 0.02110 85.94)",
+          "oklch(37.86% 0.02110 85.94)",
+          "oklch(49.29% 0.02110 85.94)",
+          "oklch(60.71% 0.02110 85.94)",
+          "oklch(72.14% 0.02110 85.94)",
+          "oklch(83.57% 0.02110 85.94)",
+          "oklch(95.00% 0.02110 85.94)"
+        ]
+      },
+      "danger-surface": {
+        "role": "secondary",
+        "displayName": "Signal Wash",
+        "canonical": "#fff1ee",
+        "tonalRamp": [
+          "oklch(15.00% 0.01571 32.01)",
+          "oklch(26.43% 0.01571 32.01)",
+          "oklch(37.86% 0.01571 32.01)",
+          "oklch(49.29% 0.01571 32.01)",
+          "oklch(60.71% 0.01571 32.01)",
+          "oklch(72.14% 0.01571 32.01)",
+          "oklch(83.57% 0.01571 32.01)",
+          "oklch(95.00% 0.01571 32.01)"
+        ]
+      },
+      "quiet-surface": {
+        "role": "neutral",
+        "displayName": "Quiet Evidence Wash",
+        "canonical": "#f0f5f3",
+        "tonalRamp": [
+          "oklch(15.00% 0.00592 170.45)",
+          "oklch(26.43% 0.00592 170.45)",
+          "oklch(37.86% 0.00592 170.45)",
+          "oklch(49.29% 0.00592 170.45)",
+          "oklch(60.71% 0.00592 170.45)",
+          "oklch(72.14% 0.00592 170.45)",
+          "oklch(83.57% 0.00592 170.45)",
+          "oklch(95.00% 0.00592 170.45)"
+        ]
+      },
+      "observation": {
+        "role": "primary",
+        "displayName": "Observed Data Blue",
+        "canonical": "#2863c5",
+        "tonalRamp": [
+          "oklch(15.00% 0.16513 260.09)",
+          "oklch(26.43% 0.16513 260.09)",
+          "oklch(37.86% 0.16513 260.09)",
+          "oklch(49.29% 0.16513 260.09)",
+          "oklch(60.71% 0.16513 260.09)",
+          "oklch(72.14% 0.16513 260.09)",
+          "oklch(83.57% 0.16513 260.09)",
+          "oklch(95.00% 0.16513 260.09)"
+        ]
+      },
+      "chart-signal": {
+        "role": "secondary",
+        "displayName": "Chart Signal Coral",
+        "canonical": "#c44638",
+        "tonalRamp": [
+          "oklch(15.00% 0.16375 29.44)",
+          "oklch(26.43% 0.16375 29.44)",
+          "oklch(37.86% 0.16375 29.44)",
+          "oklch(49.29% 0.16375 29.44)",
+          "oklch(60.71% 0.16375 29.44)",
+          "oklch(72.14% 0.16375 29.44)",
+          "oklch(83.57% 0.16375 29.44)",
+          "oklch(95.00% 0.16375 29.44)"
+        ]
+      },
+      "frozen-baseline": {
+        "role": "primary",
+        "displayName": "Frozen Baseline Teal",
+        "canonical": "#127d79",
+        "tonalRamp": [
+          "oklch(15.00% 0.08816 190.78)",
+          "oklch(26.43% 0.08816 190.78)",
+          "oklch(37.86% 0.08816 190.78)",
+          "oklch(49.29% 0.08816 190.78)",
+          "oklch(60.71% 0.08816 190.78)",
+          "oklch(72.14% 0.08816 190.78)",
+          "oklch(83.57% 0.08816 190.78)",
+          "oklch(95.00% 0.08816 190.78)"
+        ]
+      },
+      "control-limit": {
+        "role": "tertiary",
+        "displayName": "Control Limit Amber",
+        "canonical": "#a96b16",
+        "tonalRamp": [
+          "oklch(15.00% 0.12050 67.80)",
+          "oklch(26.43% 0.12050 67.80)",
+          "oklch(37.86% 0.12050 67.80)",
+          "oklch(49.29% 0.12050 67.80)",
+          "oklch(60.71% 0.12050 67.80)",
+          "oklch(72.14% 0.12050 67.80)",
+          "oklch(83.57% 0.12050 67.80)",
+          "oklch(95.00% 0.12050 67.80)"
+        ]
+      },
+      "comparison": {
+        "role": "neutral",
+        "displayName": "Historical Comparison Gray",
+        "canonical": "#a6b3c0",
+        "tonalRamp": [
+          "oklch(15.00% 0.02365 248.14)",
+          "oklch(26.43% 0.02365 248.14)",
+          "oklch(37.86% 0.02365 248.14)",
+          "oklch(49.29% 0.02365 248.14)",
+          "oklch(60.71% 0.02365 248.14)",
+          "oklch(72.14% 0.02365 248.14)",
+          "oklch(83.57% 0.02365 248.14)",
+          "oklch(95.00% 0.02365 248.14)"
+        ]
+      },
+      "chart-grid": {
+        "role": "neutral",
+        "displayName": "Plot Grid Gray",
+        "canonical": "#e5ebef",
+        "tonalRamp": [
+          "oklch(15.00% 0.00842 236.56)",
+          "oklch(26.43% 0.00842 236.56)",
+          "oklch(37.86% 0.00842 236.56)",
+          "oklch(49.29% 0.00842 236.56)",
+          "oklch(60.71% 0.00842 236.56)",
+          "oklch(72.14% 0.00842 236.56)",
+          "oklch(83.57% 0.00842 236.56)",
+          "oklch(95.00% 0.00842 236.56)"
+        ]
+      },
+      "chart-axis": {
+        "role": "neutral",
+        "displayName": "Plot Annotation Slate",
+        "canonical": "#627487",
+        "tonalRamp": [
+          "oklch(15.00% 0.03664 249.90)",
+          "oklch(26.43% 0.03664 249.90)",
+          "oklch(37.86% 0.03664 249.90)",
+          "oklch(49.29% 0.03664 249.90)",
+          "oklch(60.71% 0.03664 249.90)",
+          "oklch(72.14% 0.03664 249.90)",
+          "oklch(83.57% 0.03664 249.90)",
+          "oklch(95.00% 0.03664 249.90)"
+        ]
+      },
+      "baseline-period": {
+        "role": "neutral",
+        "displayName": "Baseline Period Wash",
+        "canonical": "#f0f4f7",
+        "tonalRamp": [
+          "oklch(15.00% 0.00587 239.82)",
+          "oklch(26.43% 0.00587 239.82)",
+          "oklch(37.86% 0.00587 239.82)",
+          "oklch(49.29% 0.00587 239.82)",
+          "oklch(60.71% 0.00587 239.82)",
+          "oklch(72.14% 0.00587 239.82)",
+          "oklch(83.57% 0.00587 239.82)",
+          "oklch(95.00% 0.00587 239.82)"
+        ]
+      },
+      "selected-date": {
+        "role": "primary",
+        "displayName": "Selected Date Wash",
+        "canonical": "#dce9fa",
+        "tonalRamp": [
+          "oklch(15.00% 0.02700 255.09)",
+          "oklch(26.43% 0.02700 255.09)",
+          "oklch(37.86% 0.02700 255.09)",
+          "oklch(49.29% 0.02700 255.09)",
+          "oklch(60.71% 0.02700 255.09)",
+          "oklch(72.14% 0.02700 255.09)",
+          "oklch(83.57% 0.02700 255.09)",
+          "oklch(95.00% 0.02700 255.09)"
+        ]
+      },
+      "tooltip-surface": {
+        "role": "neutral",
+        "displayName": "Inspection Navy",
+        "canonical": "#183247",
+        "tonalRamp": [
+          "oklch(15.00% 0.04981 244.82)",
+          "oklch(26.43% 0.04981 244.82)",
+          "oklch(37.86% 0.04981 244.82)",
+          "oklch(49.29% 0.04981 244.82)",
+          "oklch(60.71% 0.04981 244.82)",
+          "oklch(72.14% 0.04981 244.82)",
+          "oklch(83.57% 0.04981 244.82)",
+          "oklch(95.00% 0.04981 244.82)"
+        ]
+      },
+      "tooltip-text": {
+        "role": "neutral",
+        "displayName": "Inspection Paper",
+        "canonical": "#edf5fc",
+        "tonalRamp": [
+          "oklch(15.00% 0.01269 244.25)",
+          "oklch(26.43% 0.01269 244.25)",
+          "oklch(37.86% 0.01269 244.25)",
+          "oklch(49.29% 0.01269 244.25)",
+          "oklch(60.71% 0.01269 244.25)",
+          "oklch(72.14% 0.01269 244.25)",
+          "oklch(83.57% 0.01269 244.25)",
+          "oklch(95.00% 0.01269 244.25)"
+        ]
+      },
+      "hourly-neutral": {
+        "role": "neutral",
+        "displayName": "Hourly Zero Change",
+        "canonical": "#f5f7f9",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
+      },
+      "hourly-unavailable": {
+        "role": "neutral",
+        "displayName": "Hourly Unavailable Evidence",
+        "canonical": "#e5eaee",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
+      },
+      "band-outline": {
+        "role": "neutral",
+        "displayName": "Supplied Band Outline",
+        "canonical": "#17242e",
+        "tonalRamp": [
+          "oklch(15.00% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95.00% 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Repeated instrument headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default interface and explanatory prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "General labels."
+      },
+      "chart-label": {
+        "displayName": "Chart Label",
+        "purpose": "Plot axes and annotations; tabular numerals."
+      },
+      "selected-zone": {
+        "displayName": "Selected Zone",
+        "purpose": "Heading of the selected-zone analysis panel."
+      }
+    },
+    "shadows": [
+      {
+        "name": "selected-zone-inset",
+        "value": "inset 0 0 0 1px #a2cec7",
+        "purpose": "Selected row inset seam, not elevation."
+      },
+      {
+        "name": "chart-inspection",
+        "value": "0 5px 14px #18324724",
+        "purpose": "Transient daily chart tooltip."
+      },
+      {
+        "name": "segmented-selection",
+        "value": "0 1px 3px #22344020",
+        "purpose": "Active local segmented control, not resting panel elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "reduced-motion",
+        "value": "@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}",
+        "purpose": "Honor reduced motion for all controls."
+      },
+      {
+        "name": "keyboard-focus",
+        "value": "outline:2px solid var(--focus);outline-offset:3px",
+        "purpose": "Global interactive focus treatment."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-desktop",
+        "value": "(min-width:1500px)"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "(max-width:1199px) and (min-width:1100px)"
+      },
+      {
+        "name": "scrolling-layout",
+        "value": "(max-width:1099px)"
+      },
+      {
+        "name": "single-column",
+        "value": "(max-width:760px)"
+      },
+      {
+        "name": "narrow-chart",
+        "value": "(max-width:700px)"
+      },
+      {
+        "name": "narrow-tabs",
+        "value": "(max-width:390px)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Retry Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid action used to retry a failed scenario load.",
+      "html": "<button class=\"ds-retry\">Retry loading</button>",
+      "css": ".ds-retry{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;border:0;cursor:pointer;background:var(--teal,#087d77);color:var(--surface,#fff);padding:8px 13px;border-radius:5px;}.ds-retry:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}.ds-retry:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-retry{animation:none!important}}.ds-retry:hover{background:#066a65}"
+    },
+    {
+      "name": "Text Action",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Compact inline chart and review actions.",
+      "html": "<button class=\"ds-text-action\">View daily data</button>",
+      "css": ".ds-text-action{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:17px;font-weight:600;color:#096e69;padding:3px 0;white-space:nowrap}.ds-text-action:hover{text-decoration:underline;text-underline-offset:3px}.ds-text-action:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}"
+    },
+    {
+      "name": "Local Native Fields",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "Local time-of-day selectors and data-source connection fields.",
+      "html": "<label class=\"ds-select-label\">Window <select class=\"ds-select\"><option>14 days</option><option>Latest 7</option></select></label><label class=\"ds-select-label\">API URL <input class=\"ds-input\" type=\"url\" placeholder=\"API base URL\"></label>",
+      "css": ".ds-select-label{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;display:flex;align-items:center;gap:9px;color:var(--muted,#5b6c78);font-size:12px}.ds-select{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;height:30px;padding:0 27px 0 9px;background:var(--surface,#fff);color:var(--ink,#223440);border:1px solid #c9d3d9;border-radius:5px;font-weight:550;accent-color:var(--teal,#087d77);}.ds-select:hover{border-color:#718f95}.ds-select:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-select{animation:none!important}.ds-select-label{animation:none!important}}.ds-input{font:inherit;height:31px;padding:5px 8px;border:1px solid #c9d3d9;border-radius:5px;background:#fff;color:#223440;caret-color:#087d77}.ds-input:focus-visible{outline:2px solid #1267ae;outline-offset:2px}.ds-input:disabled{color:#5b6c78;background:#f5f7f8}"
+    },
+    {
+      "name": "Local Analysis Tabs",
+      "kind": "nav",
+      "refersTo": "analysis-tab-active",
+      "description": "Local views of the same selected zone.",
+      "html": "<div class=\"ds-analysis-tabs\" role=\"tablist\" aria-label=\"Selected-zone analysis\"><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"true\">Where &amp; when</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Daily p chart</button><button class=\"ds-analysis-tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Delay stages</button></div>",
+      "css": ".ds-analysis-tabs{display:flex;align-items:center;gap:2px;min-height:36px;padding:0 14px;border-bottom:1px solid var(--line,#dce3e7)}.ds-analysis-tab{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;align-self:stretch;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;padding:0 10px;color:var(--muted,#5b6c78);font-size:12px;font-weight:550;white-space:nowrap}.ds-analysis-tab:first-child{padding-left:0;padding-right:12px}.ds-analysis-tab:hover{color:var(--ink,#223440);background:#f5f9f9}.ds-analysis-tab[aria-selected=\"true\"]{color:#066e69;border-bottom-color:var(--teal,#087d77)}.ds-analysis-tab:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}"
+    },
+    {
+      "name": "Evidence State Badges",
+      "kind": "chip",
+      "refersTo": "status-danger",
+      "description": "Distinct target and control evidence; text preserves meaning.",
+      "html": "<div class=\"ds-states\"><span class=\"ds-badge ds-badge-warning\">Above target</span><span class=\"ds-badge ds-badge-danger\">Daily signal</span><span class=\"ds-badge ds-badge-quiet\">No daily signal</span></div>",
+      "css": ".ds-states{display:flex;flex-wrap:wrap;gap:6px}.ds-badge{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;font-weight:550;line-height:16px;padding:3px 6px;border-radius:4px}.ds-badge-danger{background:#fff1ee;color:#b1392e}.ds-badge-warning{background:#fff8e9;color:#80570d}.ds-badge-quiet{background:#f0f5f3;color:#32645c}"
+    },
+    {
+      "name": "Instrument Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat container for a chart, evidence table or methods.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-title\"><h2>Where is the delay?</h2><span>Medians \u00b7 min</span></header><p class=\"ds-panel-note\">Stage medians are separate measures; they do not add to median response.</p></section>",
+      "css": ".ds-panel{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;background:var(--surface,#fff);color:var(--ink,#223440);border:1px solid var(--line,#dce3e7);border-radius:12px;overflow:hidden}.ds-panel-title{padding:10px 12px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}.ds-panel-title h2{margin:0;font-size:14px;line-height:18px;letter-spacing:-.015em;font-weight:650}.ds-panel-title span{font-size:11px;line-height:15px;color:var(--muted,#5b6c78)}.ds-panel-note{margin:0;padding:6px 14px 9px;color:var(--muted,#5b6c78);font-size:11px;line-height:16px}"
+    },
+    {
+      "name": "Selected Zone Table Row",
+      "kind": "custom",
+      "refersTo": "zone-row-selected",
+      "description": "Selected table row with a keyboard-accessible identity-cell button; values come from supplied evidence.",
+      "html": "<table class=\"ds-zone-table\"><thead><tr><th>Zone</th><th>Late</th><th>P90</th><th>Change</th></tr></thead><tbody><tr class=\"ds-zone-selected\"><td><button class=\"ds-zone-select\" aria-pressed=\"true\" aria-label=\"Inspect zone C, Residential\"><span class=\"ds-zone-label\"><span class=\"ds-zone-letter\">C</span><span>Residential</span></span></button></td><td class=\"ds-numeric ds-target\">\u2014</td><td class=\"ds-numeric\">\u2014</td><td class=\"ds-signal\">\u2014</td></tr></tbody></table>",
+      "css": ".ds-zone-table{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;width:100%;border-collapse:collapse;text-align:left;color:var(--ink,#223440)}.ds-zone-table th{padding:5px 8px;border-bottom:1px solid var(--line,#dce3e7);background:#f8fafb;color:var(--muted,#5b6c78);font-size:12px;font-weight:550}.ds-zone-table td{height:42px;padding:4px 8px;font-size:12px}.ds-zone-selected{background:#eaf5f3;box-shadow:inset 0 0 0 1px #a2cec7}.ds-zone-select{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;font-variant-numeric:tabular-nums;display:block;width:100%;min-height:28px;padding:0;border:0;border-radius:3px;background:none;color:inherit;text-align:left;cursor:pointer}.ds-zone-select:focus-visible{outline:2px solid var(--focus,#1267ae);outline-offset:3px}.ds-zone-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:550}.ds-zone-letter{width:24px;height:26px;display:grid;place-items:center;flex-shrink:0;border-radius:5px;border:1px solid var(--teal,#087d77);background:var(--teal,#087d77);color:white;font-size:13px;font-weight:700}.ds-numeric{text-align:right;font-weight:600}.ds-target{color:var(--amber,#94610f)}.ds-signal{color:#b1392e;font-weight:550}"
+    },
+    {
+      "name": "Chart Inspection Tooltip",
+      "kind": "custom",
+      "refersTo": "chart-tooltip",
+      "description": "Nearest-date inspection anywhere across the horizontal daily plot; also available through point focus.",
+      "html": "<div class=\"ds-tooltip\" role=\"status\"><strong>Selected date \u00b7 monitoring</strong><span>Late rate \u00b7 supplied value and call counts</span><span>UCL / LCL \u00b7 supplied limits</span><span>Supplied evidence status</span></div>",
+      "css": ".ds-tooltip{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:13px;display:flex;flex-direction:column;gap:4px;background:#183247;color:#edf5fc;border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.4;box-shadow:0 5px 14px #18324724;max-width:280px}.ds-tooltip strong{font-weight:650;color:white}@media(prefers-reduced-motion:reduce){.ds-tooltip{animation:none!important}}"
+    },
+    {
+      "name": "Direct Scenario Choice",
+      "kind": "button",
+      "refersTo": "scenario-choice-active",
+      "description": "A named scenario with its explanation and explicit pressed state.",
+      "html": "<button class=\"ds-scenario\" aria-pressed=\"true\"><strong>Scenario</strong><span>All six districts \u00b7 supplied evidence</span></button>",
+      "css": ".ds-scenario{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:9px 12px;border:1px solid #d5dfe2;border-radius:6px;text-align:left;background:#fff;color:#223440;cursor:pointer}.ds-scenario strong{font-size:12px;line-height:17px;font-weight:600}.ds-scenario span{font-size:10px;line-height:14px;color:#5b6c78}.ds-scenario:hover{background:#f4f9f8;border-color:#94b9b3}.ds-scenario[aria-pressed=true]{background:#eaf5f3;border-color:#087d77;box-shadow:inset 0 0 0 1px #087d77}.ds-scenario[aria-pressed=true] strong{color:#066a65}.ds-scenario:focus-visible{outline:2px solid #1267ae;outline-offset:3px}"
+    },
+    {
+      "name": "Local Segmented Scope",
+      "kind": "button",
+      "refersTo": "segmented-active",
+      "description": "Direct incident scope buttons; the same control language switches hourly display.",
+      "html": "<div class=\"ds-segmented\" role=\"group\" aria-label=\"Incident scope\"><button aria-pressed=\"true\">All zones</button><button aria-pressed=\"false\">Selected zone</button></div>",
+      "css": ".ds-segmented{display:inline-flex;padding:2px;border:1px solid #dce3e7;border-radius:5px;background:#f4f7f8}.ds-segmented button{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;padding:5px 9px;border:0;border-radius:3px;background:none;font-size:12px;color:#5b6c78;cursor:pointer}.ds-segmented button[aria-pressed=true]{color:#096e69;background:#fff;box-shadow:0 1px 3px #22344020;font-weight:650}.ds-segmented button:hover{color:#096e69}.ds-segmented button:focus-visible{outline:2px solid #1267ae;outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quality Engineer's Instrument Bench",
+    "overview": "A light professional workbench for interpreting response quality. Cool off-white ground, white instrument panels and navy ink create a calm, compact operational surface. Teal marks selection and purposeful controls; chart colors identify evidence and its statistical meaning.\n\nThe interface uses aligned figures, persistent panel locations and restrained borders so repeated comparisons remain easy to scan. English labels stay factual. Density serves the supervisor task; it does not justify shrinking the main evidence or hiding unavailable results.",
+    "keyCharacteristics": [
+      "Cool ground and white instrument panels.",
+      "Compact controls with aligned, tabular figures.",
+      "Teal selection and explicit statistical color roles.",
+      "Data-drawn SVG charts with keyboard inspection."
+    ],
+    "rules": [
+      {
+        "name": "Meaning Before Color",
+        "body": "Pair a signal color with a label, line style or marker shape. Target failure and a control-limit signal remain distinct.",
+        "section": "colors"
+      },
+      {
+        "name": "Tabular Evidence",
+        "body": "Use tabular numerals in metrics, tables and plots so comparisons stay vertically aligned.",
+        "section": "typography"
+      },
+      {
+        "name": "Flat Instruments",
+        "body": "Resting panels use a seam border. Reserve floating shadows for transient inspection and active segmented controls; district selection uses an inset outline.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the existing semantic colors and distinguish interface colors from chart-series colors.",
+      "Do keep textual state labels and keyboard-visible focus on interactive evidence.",
+      "Do align comparable numbers and preserve units, unavailable states and chart explanations.",
+      "Do let panels reflow and the page scroll on narrow screens."
+    ],
+    "donts": [
+      "Don't turn amber target warnings into red control-limit signals.",
+      "Don't show unavailable evidence as zero or as a reassuring normal state.",
+      "Don't add decorative imagery or shadows to the data instrument panels.",
+      "Don't replace real chart data with decorative sparklines or infer a cause from stage durations."
+    ]
+  }
+}

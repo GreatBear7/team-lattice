@@ -1,0 +1,25 @@
+.daily-chart,.band-chart,.stage-chart{min-width:0;min-height:0;height:100%;display:flex;flex-direction:column;gap:8px}
+.chart-legend{display:flex;align-items:center;flex-wrap:wrap;gap:7px 16px;flex-shrink:0;color:#56697b;font-size:12px;line-height:1.4}
+.chart-legend-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chart-key{display:inline-block;width:17px;height:2px;background:var(--key-color);flex-shrink:0}
+.chart-key-dash{background:none;border-top:2px dashed var(--key-color);height:0}
+.chart-key-dotline{background:none;border-top:2px dotted var(--key-color);height:0}
+.chart-key-dot{height:7px;width:7px;border-radius:50%}
+.chart-key-bar{height:9px;width:13px;border-radius:1px}
+.chart-key-triangle{width:0;height:0;background:none;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:8px solid var(--key-color)}
+.chart-svg-wrap{position:relative;min-height:0;flex:1;isolation:isolate}
+.chart-plot{display:block;width:100%;height:100%;overflow:visible;font-family:inherit;font-variant-numeric:tabular-nums}
+.chart-axis-label{font-size:12px;fill:#627487;font-weight:400}
+.chart-phase-label{font-size:12px;fill:#627487;font-weight:600;letter-spacing:.04em}
+.chart-category-label{font-size:12px;fill:#2e4457;font-weight:500}
+.chart-value-label{font-size:12px;font-weight:650}
+.chart-caution-label{font-size:12px;fill:#956110;font-weight:500}
+.chart-point{cursor:pointer;outline:none}
+.chart-point:focus-visible .chart-point-hit{fill:#dceaff;stroke:#215ca7;stroke-width:2}
+.chart-point:hover .chart-point-hit{fill:#dceaff;fill-opacity:.55}
+.chart-tooltip{position:absolute;z-index:3;right:10px;top:8px;display:flex;flex-direction:column;gap:4px;background:#183247;color:#edf5fc;border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.4;box-shadow:0 5px 14px #18324724;pointer-events:none;max-width:280px}
+.chart-tooltip strong{font-weight:650;color:white}
+.chart-inspection{min-height:23px;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;color:#586d80;font-size:12px;line-height:1.5;flex-shrink:0}
+.chart-inspection strong{font-weight:650;color:#263c4f}
+.chart-empty{min-height:140px;display:grid;place-items:center;color:#667b8e;font-size:13px;text-align:center;padding:20px}
+@media(max-width:700px){.chart-legend{font-size:12px;gap:6px 10px}.chart-inspection{font-size:12px;gap:4px 10px}.chart-tooltip{font-size:12px;max-width:240px}.chart-svg-wrap{min-height:140px}}

@@ -1,0 +1,59 @@
+{
+  "latest_dev_ref": "88890e4518089fcb58ec88341d7a64c9743fde24",
+  "data_ref": "9853338b31dcc761860ede9b549208029c877251",
+  "stats_ref": "149cfbb0917d849937067e05dfd9944c3fe7b46e",
+  "data_branch_ref": "e326388558b40346a99da9b184af29c7f382ee50",
+  "stats_branch_ref": "f8b0641be25270d0ea84bd46f024f2def801f194",
+  "data_files": {
+    "normal.csv": "63478a863e7d158a22b26eca4b49305d93881feab684f5d8447b046cb602a13e",
+    "recovery.csv": "ba124ca5a1e053f8555ac954c3e7f4bb4985a7cb456e1967b5d12f9ae4b75ad6",
+    "morning_tail.csv": "baa23bcc0f0b831f121552aed70fdebcb8cbf5c71f42315f1c2b8d5728b7deab"
+  },
+  "stats_sha256": "0ee8a773ef56dbe7778e2607bbd641cde65aa7e3c9847a207d721851d71d4bed",
+  "generator_sha256": "fa0431479b91759f4eb3a725a0881c881d6370648b26c7966f6341d7f34900fc",
+  "git_objects": {
+    "app/qc.py": {
+      "git_blob": "a7b47e402ed911d6c3f734bdda4403ffad4d158c",
+      "sha256": "0ee8a773ef56dbe7778e2607bbd641cde65aa7e3c9847a207d721851d71d4bed"
+    },
+    "data/generate_data.py": {
+      "git_blob": "7a776fa3b4462da73a12b0e3e97b326e9884e8d6",
+      "sha256": "fa0431479b91759f4eb3a725a0881c881d6370648b26c7966f6341d7f34900fc"
+    },
+    "data/normal.csv": {
+      "git_blob": "da57bd895efa5dfae8a1510c3d113826cead0713",
+      "sha256": "63478a863e7d158a22b26eca4b49305d93881feab684f5d8447b046cb602a13e"
+    },
+    "data/recovery.csv": {
+      "git_blob": "a0430d56385405817012002ef3b7998008e1752b",
+      "sha256": "ba124ca5a1e053f8555ac954c3e7f4bb4985a7cb456e1967b5d12f9ae4b75ad6"
+    },
+    "data/morning_tail.csv": {
+      "git_blob": "a9d19a40efc5dd084fb4806bf9ba2323f3fafedd",
+      "sha256": "baa23bcc0f0b831f121552aed70fdebcb8cbf5c71f42315f1c2b8d5728b7deab"
+    }
+  },
+  "baseline": {
+    "start": "2026-09-14",
+    "end_exclusive": "2026-09-28T00:00:00-04:00",
+    "days": 14
+  },
+  "monitoring": {
+    "start": "2026-09-28",
+    "end": "2026-10-11",
+    "days": 14
+  },
+  "hourly_view_windows": {
+    "14": {
+      "monitoring_start": null,
+      "start": "2026-09-28",
+      "end": "2026-10-11"
+    },
+    "7": {
+      "monitoring_start": "2026-10-05",
+      "start": "2026-10-05",
+      "end": "2026-10-11"
+    }
+  },
+  "note": "Precomputed prototype fixtures from committed origin/dev synthetic CSVs and unchanged B statistics. Inputs verified byte-for-byte against the listed Git objects. No API or live data connection. scenario_truth.json is not read."
+}

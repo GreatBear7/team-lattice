@@ -22,15 +22,15 @@
 # Delete the paths you do not use.
 
 spec: SPEC.md
-updated: ""
+updated: "2026-10-17"
 
 tasks:
   - id: H-01
     title: Fill in every FILL IN line in SPEC.md
     points: "15 - Tool Design: scope matches a prompt (5), clear user and use case (5), minimal inputs (5)"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: in_progress
+    owner: "Claire / Codex"
+    started_at: "2026-10-17"
     owns: ["SPEC.md"]
     notes: >
       Do this together, out loud, right after kickoff. The prompts are in
@@ -40,27 +40,27 @@ tasks:
       grep -c "FILL IN[.,]" SPEC.md prints 0 (it counts only the blanks,
       not the instructions at the top), and every teammate can say the
       method sentence in SPEC section 4 without reading it.
-    result: ""
+    result: "SPEC populated from the approved scope and current implementation; user confirmed team-lattice; Prompt 2 recorded by A codebook; zero FILL IN answer lines; four cited known-answer/boundary tests passed. Formal four-member method walkthrough remains to be checked, so H-01 is not marked done solely on template completion."
 
   - id: H-02
     title: Two or three test datasets plus a codebook
     points: "10 - Tool Documentation: 2-3 working test datasets (5), codebook and README for the data (5)"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: done
+    owner: "Kaushik Chivukula (A, data lead)"
+    started_at: "2026-10-16 17:30"
     owns: ["data/"]
     definition_of_done: >
       ls data/*.csv lists 2 or 3 files (e.g. in control, planted shift, edge
       case), and data/README.md names every one of them and describes every
       column with units and how the data would be collected for real.
-    result: ""
+    result: "ls data/*.csv lists normal.csv, recovery.csv, morning_tail.csv (16,800 rows each, seed 5300, byte-reproducible); data/README.md names all three and documents all 9 columns with units, generation, realized baselines, limits and real CAD/NEMSIS collection."
 
   - id: H-03
     title: Core QC statistic as one plain, tested function
     points: "25 - Tool Implementation: valid analyses relevant to quality control in R or Python"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: done
+    owner: "Saptarshi"
+    started_at: "2026-10-16 17:46"
     owns: ["app/qc.py", "app/qc.R", "app/requirements.txt", "tests/"]
     notes: >
       Load the stats-first-steering skill before writing any statistics. Plain
@@ -69,14 +69,14 @@ tasks:
       pytest tests (Python) or Rscript -e "testthat::test_dir('tests')" (R)
       passes, including one test that reproduces the SPEC section 4
       known-answer check and one degenerate case (constant data or n = 1).
-    result: ""
+    result: "app/qc.py: daily p chart, time bands, descriptives, slowest five, stages, zone summary; 67 tests pass (76 with teammate data); stats-reviewer PASS"
 
   - id: H-04
     title: Working tool - one demo copied to app/ and wired to the H-03 function
     points: "25 - Tool Implementation: an effective, working tool (does it run?)"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: done
+    owner: "Claire / Codex: C frontend complete, D backend integration"
+    started_at: "2026-10-16 17:46"
     owns: ["app/"]
     notes: >
       Copy ONE folder from demos/ (the one named in SPEC section 5) to app/.
@@ -86,7 +86,26 @@ tasks:
       The testme script in app/ starts the tool with one command, and a call
       on one data/ file (endpoint, function call or app upload) returns the
       same numbers as the H-03 known-answer test.
-    result: ""
+    frontend_scope:
+      owns: ["app/frontend/", "PRODUCT.md", "DESIGN.md", ".impeccable/"]
+      status: done
+      notes: >
+        User authorized the compact supervisor dashboard redesign with
+        latest H-11 three scenarios (normal/recovery/morning_tail), all six zones,
+        focused evidence triage, daily p charts, hourly heatmap and band views,
+        baseline/monitoring stage P90, grid/clock selection, flat scenario and incident controls,
+        nearest-date chart inspection, CSV/API client integration, and design records. Backend
+        scaffolding and scripts remain D-owned; app/qc.py and root tests
+        remain B-owned. Do not copy a backend scaffold over these paths.
+      definition_of_done: "npm --prefix app/frontend test && npm --prefix app/frontend run build"
+      result: "69 frontend tests passed; production build passed; portable H-11 fixture refresh passed; 25 HTTP harness requests passed; desktop/mobile and grid-clock transition reviewed. C frontend complete on frontend; D backend/deployment pending."
+    backend_scope:
+      owns: ["app/api.py", "app/README.md", "app/requirements.txt", "app/requirements-dev.txt", "app/*.sh", "app/scenario_data/", "app/manifest.json", "app/.python-version", "app/.gitignore", "tests/test_api.py", ".github/workflows/", ".github/scripts/", "app/frontend/dist/"]
+      status: done
+      notes: "User explicitly authorized completing D: static CSV API, validation, isolated dataset contexts, same-origin built frontend, testme and deployment preparation; no live stream or Supabase; preserve B qc.py."
+      definition_of_done: ".venv/bin/python -m pytest tests -q && npm --prefix app/frontend test && npm --prefix app/frontend run build; testme serves UI and API with actual CSV statistics"
+      result: "220 passed (pytest); 69 passed (Vitest); build passed; API-mode browser CSV upload verified. No change to B qc.py. One worker, in-memory uploads."
+    result: "Local end-to-end complete: 220 statistics/API tests and 69 frontend tests passed; production build passed; testme serves UI/API; browser uploaded recovery.csv and reproduced C six daily/two band signals. Public deployment is separate H-06."
 
   - id: H-05
     title: Demonstration of the tool on every test dataset
@@ -120,7 +139,7 @@ tasks:
     definition_of_done: >
       The workflow run is green, and the public URL answers HTTP 200 from a
       logged-out browser and returns the H-03 numbers for one test dataset.
-    result: ""
+    result: "Deployment scripts, workflow and 13-file ASGI manifest prepared and checksums verified. User chose local-only for now; no credentials configured, no public URL or deployment claimed."
 
   - id: H-07
     title: README and function documentation
@@ -137,7 +156,7 @@ tasks:
       how each function or endpoint works, how to run it in one command, the
       live URL, and links demo/README.md. A teammate who did not write the
       code follows it from a fresh clone and it works.
-    result: ""
+    result: "Tool README, app setup/API documentation and demo/README.md written; local one-command run verified. Fresh-clone teammate walkthrough and public URL pending, so not marked done."
 
   - id: H-08
     title: Reproducible public repo, submitted on Devpost
@@ -155,3 +174,73 @@ tasks:
       testme script and the H-03 tests both pass with no extra steps; git
       grep -i "api_key" finds no real key; the Devpost entry links the repo.
     result: ""
+
+  - id: H-09
+    title: Bilingual project and synthetic-data plan
+    points: "Planning support for H-01 through H-08"
+    status: done
+    owner: "Codex, requested by team"
+    started_at: "2026-10-16 17:11"
+    owns: ["docs/Final_Plan.md", "docs/Final_Plan.en.md", "docs/plan.md", "docs/plan.zh-CN.md", "docs/plan.en.md", "docs/ResponseWatch-plan.zh-CN.md", "docs/ResponseWatch-plan.en.md"]
+    notes: >
+      The team explicitly requested Chinese and English Markdown plans and
+      creation and publication of the dev branch. This task covers planning
+      documents only; H-01 through H-08 remain unimplemented.
+      Reopened at the user's request to incorporate docs/plan-review.md
+      from commit 609bed9 into both language plans and their index.
+      Reopened again to incorporate docs/time-of-day-proposal.md from
+      commit b1b86b5, as explicitly requested by the user.
+      Reopened to publish the agreed canonical Final_Plan pair, add
+      read-only slowest incidents and clear acceptance rules, and label
+      prior alternatives as historical references.
+      Reopened to add the explicitly approved functional-zone profiles
+      from zone-profiles-proposal.md to both final plans and the index.
+    definition_of_done: >
+      python3 -c "from pathlib import Path; assert all(Path(p).is_file() and Path(p).stat().st_size > 0 for p in ('docs/plan.md', 'docs/Final_Plan.md', 'docs/Final_Plan.en.md')); print('PASS: canonical final plans and index exist')" && git diff --check
+    result: "Functional-zone profiles and independent service-target/deterioration labels added to both Final_Plan files and index; realized-rate caveats, bilingual, numeric, link, YAML and diff checks pass."
+
+  - id: H-10
+    title: Time-of-day statistics for the hourly heatmap and 24-hour clock views
+    points: "Supports 25 - valid analyses (when in the day) and 10 - clear demonstration"
+    status: done
+    owner: "Saptarshi"
+    started_at: "2026-10-16 20:35"
+    owns: ["app/qc.py", "tests/", "docs/api-contract/", "docs/team-notes.md"]
+    notes: >
+      Statistics only; drawing the grid and the clock is C's front-end work and
+      passing the fields through the API is D's. Spec: ideas/heatmap/README.md
+      on temp-ideas (Kaushik). Adds late_rate_change_by_hour (144 descriptive
+      cells, optional circular smoothing for the clock), a monitoring_start
+      window for the 7/14-day toggle, bands for all zones, and baseline_p90_min
+      in the stage summary. Extra view: C and D wire it in after the core deploy.
+    definition_of_done: >
+      .venv/bin/python -m pytest tests -q passes, including the spec's known
+      answer (20% -> 50% gives +30.0 points), hour boundaries, empty and thin
+      cells, and the morning_tail integration values (zone D hours 06-09:
+      +16.8, +15.3, +22.5, +22.1); an independent stats review passes; the API
+      contract lists the new fields.
+    result: "late_rate_change_by_hour (144 cells, optional 3-h smoothing), 7/14-day window, bands_all_zones, baseline_p90_min; 83 tests pass (96 with H-02 data); stats-reviewer PASS"
+
+  - id: H-11
+    title: Band comparison that accounts for the baseline's own sampling error
+    points: "Supports 25 - valid analyses (correct time-of-day flags)"
+    status: done
+    owner: "Saptarshi"
+    started_at: "2026-10-16 23:10"
+    owns: ["app/qc.py", "tests/", "docs/api-contract/", "docs/Final_Plan.en.md", "docs/Final_Plan.md",
+           "data/README.md"]
+    notes: >
+      The band flag used p0_band + 3*sqrt(p0(1-p0)/n_band), which treats the
+      14-day baseline rate as exact. Bands have about as many baseline as
+      monitoring calls, so in 1,000 simulated normal months 57% had at least
+      one false band alarm (nominal about 4% for 30 comparisons). Replace it
+      with the pooled two-proportion z test (z > 3, decided in integers), and
+      report the equivalent ucl/lcl lines so the chart is unchanged in shape.
+      Daily p chart unchanged. Frontend fixtures (C) must be regenerated after.
+    definition_of_done: >
+      .venv/bin/python -m pytest tests -q passes, including a known answer
+      (120/600 vs 180/600 gives z = 4.0, flag), the exact z = 3 boundary
+      (555/2400 vs 645/2400, no flag), and the data flags (normal: none;
+      recovery: C midday and evening rush; morning_tail: D morning rush);
+      an independent stats review passes.
+    result: "Band flag is now a pooled two-proportion z > 3 (integer-exact; ucl/lcl are the z = +-3 lines); false-alarm months 57% -> 3.7% in 1,000 sims, planted problems still flagged; 110 tests pass; stats-reviewer PASS"
