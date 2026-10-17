@@ -1,7 +1,7 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs, managerMessage } from './App.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs, managerMessage, briefingAnswer } from './App.jsx'
 import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex, dailyTooltipText } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
@@ -89,8 +89,8 @@ describe('precomputed dashboard evidence', () => {
     const { summary } = await getDashboard('recovery')
     const html = renderToStaticMarkup(<ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected="C" onSelect={() => {}} />)
     expect((html.match(/aria-label="Inspect zone /g) || []).length).toBe(6)
-    expect(html).toContain('Six response districts')
-    expect(html).toContain('Yes')
+    expect(html).toContain('District overview')
+    expect(html).toContain('Changed recently')
     expect(html).toContain('Above service target')
     expect(html).toContain('Within service target')
   })
@@ -296,5 +296,18 @@ describe('manager insight conclusions', () => {
     const message = managerMessage(morning.analyses.D, latest.time_of_day_all_zones.D)
     expect(message.value).toBe('41.3%')
     expect(morning.analyses.D.summary.deterioration_days).toBe(0)
+  })
+})
+
+
+describe('interactive response briefing', () => {
+  it('explains the evidence and offers an investigation path without inventing a cause', async () => {
+    const normal = await getDashboard('normal')
+    const analysis = normal.analyses.F, bands = normal.summary.time_of_day_all_zones.F
+    expect(briefingAnswer(analysis, bands).text).toContain('25.6% previously')
+    expect(briefingAnswer(analysis, bands, 'check').view).toBe('stages')
+    expect(briefingAnswer(analysis, bands, 'limits').text).toContain('do not prove a cause')
+    const morning = await getDashboard('morning_tail')
+    expect(briefingAnswer(morning.analyses.D, morning.summary.time_of_day_all_zones.D).text).toContain('06:00-10:00')
   })
 })

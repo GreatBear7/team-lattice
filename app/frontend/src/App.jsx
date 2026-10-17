@@ -29,26 +29,25 @@ export function StatusBadge({ value, kind = 'deterioration', status = 'ok', comp
 export function ZoneOverview({ zones, bandsByZone = {}, selected, onSelect }) {
   const above = zones.filter((z) => z.above_service_target === true).length
   return <section className="panel zone-overview" aria-label="Zone overview">
-    <div className="panel-heading"><div><h2>Six response districts</h2><span className="sample-note">Full period · times in minutes</span></div></div>
+    <div className="panel-heading"><div><h2>District overview</h2><span className="sample-note">Select a district · full monitoring period</span></div></div>
     <div className="table-scroll zone-table"><table><caption className="sr-only">Zone late rate, P90 and two independent change signals. Select a zone to inspect.</caption>
-      <thead><tr><th>Zone</th><th className="numeric">Late</th><th className="numeric">90% arrive within</th><th>Worse than normal?</th></tr></thead>
+      <thead><tr><th>District</th><th className="numeric">Late calls</th><th>Attention</th></tr></thead>
       <tbody>{zones.map((z) => {
         const bands = Array.isArray(bandsByZone?.[z.zone_id]) ? bandsByZone[z.zone_id] : null
         const limited = bands?.some((b) => b.status !== 'ok' || b.flag == null)
         const flaggedBands = bands?.filter((b) => b.status === 'ok' && b.flag === true) || []
         const dailyChange = z.deterioration_flag === true
         const signal = dailyChange || flaggedBands.length > 0
-        const unknown = z.deterioration_flag == null || !bands || limited
-        const changeLabel = signal ? 'Yes' : unknown ? 'Not enough data' : 'No'
-        const changeDetail = dailyChange ? `${dateLabel(z.first_flag_date)}–${dateLabel(z.last_flag_date)}` : flaggedBands.map((b) => ({ morning_rush: 'Mornings', evening_rush: 'Evenings', midday: 'Midday', night: 'Nights', late_evening: 'Late evenings' })[b.band] || b.label).join(', ')
+        const unknown = z.deterioration_flag == null || z.above_service_target == null || !bands || bands.length < 5 || limited
+        const changeLabel = signal ? 'Changed recently' : unknown ? 'Not enough data' : z.above_service_target ? 'Above target' : 'Within target'
+
         return <tr key={z.zone_id} className={selected === z.zone_id ? 'is-selected' : ''} onClick={() => onSelect(z.zone_id)}>
           <td><button className="zone-select" aria-pressed={selected === z.zone_id} aria-label={`Inspect zone ${z.zone_id}, ${zoneType(z.zone_type)}`} onClick={(event) => { event.stopPropagation(); onSelect(z.zone_id) }}><span className="zone-label"><span className="zone-letter">{z.zone_id}</span><span className="zone-profile">{zoneType(z.zone_type)}</span></span></button></td>
           <td className={`numeric ${z.above_service_target === true ? 'target-text' : ''}`}><span title={z.above_service_target == null ? 'Target status unavailable' : z.above_service_target ? 'Above service target' : 'Within service target'}>{percent(z.late_rate)}</span><span className="sr-only">{z.above_service_target == null ? 'Target status unavailable' : z.above_service_target ? 'Above service target' : 'Within service target'}</span></td>
-          <td className="numeric">{Number.isFinite(z.p90_min) ? z.p90_min.toFixed(1) : '—'}{z.p90_warning && <span title="Small sample: this time estimate may be unstable">*</span>}</td>
-          <td className="change-cell"><span className={signal ? 'signal-text' : ''}>{changeLabel}</span>{changeDetail && <small className="signal-text">{changeDetail}</small>}</td>
+          <td className="change-cell"><span className={signal ? 'signal-text' : z.above_service_target ? 'target-text' : ''}>{changeLabel}</span></td>
         </tr>
       })}</tbody></table></div>
-    <div className="zone-footnote"><b>{above}/{zones.length} zones above the late-call target</b><span>Amber = more than 10% of calls late (target)</span></div>
+    <div className="zone-footnote"><span>{above}/{zones.length} above target · target ≤10% late</span></div>
   </section>
 }
 
@@ -168,7 +167,32 @@ export function managerMessage(analysis, bands) {
   }
 }
 
+export function briefingAnswer(analysis, bands, question = 'changed') {
+  const message = managerMessage(analysis, bands)
+  const z = analysis.summary
+  if (question === 'limits') return {
+    text: message.tone === 'neutral' ? 'Some comparisons lack enough data. We cannot assess change reliably until coverage improves.' : 'These patterns do not prove a cause. We cannot tell whether traffic, staffing or dispatch decisions caused the delays; stable averages can still hide individual long waits.',
+    link: 'Inspect supporting data', view: message.view,
+  }
+  if (question === 'check') return { text: message.action, link: message.view === 'stages' ? 'Compare response stages' : message.view === 'where' ? 'Inspect the time pattern' : 'Review the daily pattern', view: message.view }
+  if (message.tone === 'neutral') return { text: message.comparison, link: 'Review available evidence', view: 'where' }
+  if (z.deterioration_flag === true) return {
+    text: `${z.deterioration_days} days were worse than this district’s usual range (${dateLabel(z.first_flag_date)}–${dateLabel(z.last_flag_date)}). Across the full monitoring period, ${percent(z.late_rate)} of calls were late, compared with ${percent(z.p0)} previously.`,
+    link: 'See the affected days', view: 'daily',
+  }
+  const band = bands?.filter(b => b.flag === true && b.status === 'ok').sort((a,b) => (b.p_band-b.p0_band)-(a.p_band-a.p0_band))[0]
+  if (band) return {
+    text: `During ${band.interval_local}, ${percent(band.p_band)} of calls were late, compared with ${percent(band.p0_band)} in the first 14 days. Daily totals hide this time-specific change.`,
+    link: 'See when delays increased', view: 'where',
+  }
+  return {
+    text: z.above_service_target ? `${percent(z.late_rate)} of calls were late, compared with ${percent(z.p0)} previously. The service gap persists, but no new deterioration was detected; the data does not identify its cause.` : `${percent(z.late_rate)} of calls were late, within the ${percent(analysis.settings.q)} target. No new deterioration was detected in the available daily or time-band comparisons.`,
+    link: z.above_service_target ? 'Compare response stages' : 'Review daily performance', view: message.view,
+  }
+}
+
 export function ManagerInsight({ analysis, bundle, client, windowDays, onViewChange }) {
+  const [question, setQuestion] = useState('changed')
   const [state, setState] = useState({ data: null, error: false })
   useEffect(() => {
     const controller = new AbortController()
@@ -181,15 +205,18 @@ export function ManagerInsight({ analysis, bundle, client, windowDays, onViewCha
   const id = analysis.summary.zone_id
   const bands = windowDays === 14 ? bundle.summary.time_of_day_all_zones?.[id] : state.data?.time_of_day_all_zones?.[id]
   const message = managerMessage(analysis, bands)
+  const answer = briefingAnswer(analysis, bands, question)
+  const title = message.tone === 'warning' ? 'Persistent service gap' : message.tone === 'quiet' ? 'Stable and within target' : message.title
   const loading = windowDays !== 14 && !state.data && !state.error
   const scope = message.band ? (windowDays === 7 ? 'Latest 7 monitoring days' : `${dateLabel(analysis.monitoring.start)}–${dateLabel(analysis.monitoring.end)}`) : message.scope
-  return <section className={`panel outlier-panel insight-panel insight-${message.tone}`} aria-label="Manager insight">
-    <div className="insight-heading"><h2>Manager insight</h2><span>Zone {id}</span></div>
-    {loading ? <p className="insight-loading" role="status">Updating time-band insight…</p> : <div className="insight-content" aria-live="polite">
-      <h3>{message.title}</h3><div className="insight-number">{message.value}</div><p className="insight-unit">{message.unit}</p>
-      <p className="insight-comparison">{message.comparison}</p>
-      <button className="insight-action" onClick={() => onViewChange(message.view)}>{message.action}<span aria-hidden="true"> ↗</span></button>
-      <p className="insight-scope">{scope} · completed calls{windowDays === 7 && !message.band ? ' · time-band view: latest 7 days' : ''}</p>
+  return <section className={`panel outlier-panel insight-panel insight-${message.tone}`} aria-label="Response briefing">
+    <div className="insight-heading"><h2>Response briefing</h2><span>Zone {id}</span></div>
+    {loading ? <p className="insight-loading" role="status">Updating the briefing…</p> : <div className="insight-content">
+      <h3>{title}</h3>
+      <div className="briefing-questions" role="group" aria-label="Briefing questions">{[['changed', 'What changed?'], ['check', 'What to check?'], ['limits', 'Limits']].map(([key, label]) => <button key={key} aria-pressed={question === key} onClick={() => setQuestion(key)}>{label}</button>)}</div>
+      <p className="briefing-answer" aria-live="polite">{answer.text}</p>
+      <button className="insight-action" onClick={() => onViewChange(answer.view)}>{answer.link}<span aria-hidden="true"> ↗</span></button>
+      <p className="insight-scope">{scope} · completed calls{windowDays === 7 && !message.band ? ' · time-band view: latest 7 days' : ''}<br />Based on validated statistics</p>
     </div>}
   </section>
 }
