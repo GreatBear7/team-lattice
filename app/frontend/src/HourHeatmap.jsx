@@ -18,13 +18,13 @@ const hourLabel = hour => `${String(hour).padStart(2, '0')}:00`
 const interval = (hour, smooth = 1) => smooth === 3 ? `${hourLabel((hour + 23) % 24)}–${hourLabel((hour + 2) % 24)} pooled (center ${hourLabel(hour)})` : `${hourLabel(hour)}–${hourLabel(hour + 1)}`
 const rate = value => finite(value) ? `${(value * 100).toFixed(1)}%` : 'Not available'
 const count = value => finite(value) ? new Intl.NumberFormat('en-US').format(value) : 'Not available'
-const change = value => finite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(1)} pp` : 'Change not available'
+const change = value => finite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(1)} points` : 'Change not available'
 
 function statusLabel(status) {
   if (status === 'ok') return 'Descriptive hourly comparison'
-  if (status === 'insufficient_evidence') return 'Insufficient evidence'
+  if (status === 'insufficient_evidence') return 'Not enough data'
   if (status === 'no_data') return 'No data for one or both periods'
-  if (status === 'baseline_insufficient') return 'Baseline insufficient'
+  if (status === 'baseline_insufficient') return 'Not enough baseline data'
   return 'Evidence unavailable'
 }
 
@@ -179,9 +179,9 @@ export function HourHeatmap({ variant = 'grid', data, bandsByZone = {}, selected
 
   return <div className={`hour-heatmap ${isClock ? 'hour-clock' : ''}`}>
     <div className="hour-legend" aria-label="Heatmap legend">
-      <div className="hour-color-legend"><span>Late-rate change (pp)</span><svg className="hour-scale" viewBox="0 0 154 32" width="154" height="32" role="img" aria-label="Blue is minus 25 percentage points or less; pale is zero; red is plus 25 percentage points or more."><defs><linearGradient id={gradientId}><stop offset="0%" stopColor={COLORS.blue} /><stop offset="50%" stopColor={COLORS.neutral} /><stop offset="100%" stopColor={COLORS.red} /></linearGradient></defs><rect x="1" y="1" width="152" height="9" fill={`url(#${gradientId})`} stroke="#cad4dc" /><text x="1" y="28" textAnchor="start">−25</text><text x="77" y="28" textAnchor="middle">0</text><text x="153" y="28" textAnchor="end">+25</text></svg></div>
-      <span className="hour-legend-item"><svg width="20" height="13" viewBox="0 0 20 13" aria-hidden="true"><rect x="1.5" y="1.5" width="17" height="10" fill="none" stroke="#17242e" strokeWidth="1.8" /></svg>Black outline = time-band signal</span>
-      <span className="hour-legend-item"><svg width="20" height="13" viewBox="0 0 20 13" aria-hidden="true"><defs><Hatch id={legendHatchId} /></defs><rect x="0" y="0" width="20" height="13" fill={COLORS.unavailable} /><rect x="0" y="0" width="20" height="13" fill={`url(#${legendHatchId})`} /></svg>Gray hatch = limited or missing evidence</span><span className="hour-selection-key">Teal outline = selected district</span>
+      <div className="hour-color-legend"><span>Late-rate change · percentage points</span><svg className="hour-scale" viewBox="0 0 154 32" width="154" height="32" role="img" aria-label="Blue is minus 25 percentage points or less; pale is zero; red is plus 25 percentage points or more."><defs><linearGradient id={gradientId}><stop offset="0%" stopColor={COLORS.blue} /><stop offset="50%" stopColor={COLORS.neutral} /><stop offset="100%" stopColor={COLORS.red} /></linearGradient></defs><rect x="1" y="1" width="152" height="9" fill={`url(#${gradientId})`} stroke="#cad4dc" /><text x="1" y="28" textAnchor="start">−25</text><text x="77" y="28" textAnchor="middle">0</text><text x="153" y="28" textAnchor="end">+25</text></svg></div>
+      <span className="hour-legend-item"><svg width="20" height="13" viewBox="0 0 20 13" aria-hidden="true"><rect x="1.5" y="1.5" width="17" height="10" fill="none" stroke="#17242e" strokeWidth="1.8" /></svg>Black outline = worse than usual</span>
+      <span className="hour-legend-item"><svg width="20" height="13" viewBox="0 0 20 13" aria-hidden="true"><defs><Hatch id={legendHatchId} /></defs><rect x="0" y="0" width="20" height="13" fill={COLORS.unavailable} /><rect x="0" y="0" width="20" height="13" fill={`url(#${legendHatchId})`} /></svg>Gray hatch = not enough data</span><span className="hour-selection-key">Teal outline = selected district</span>
     </div>
     <div className="hour-plot-scroll">
       <div className="hour-plot-frame" ref={plotRef}>
@@ -233,11 +233,11 @@ export function HourHeatmap({ variant = 'grid', data, bandsByZone = {}, selected
       </div>
     </div>
     {isClock && <div className="clock-zone-key" role="group" aria-label="Clock rings"><span>Outer to inner</span>{ZONES.map(zone => <button key={zone} aria-pressed={selectedZone === zone} onClick={() => onSelectZone?.(zone)} aria-label={`Select clock ring ${zone}`}>{zone}</button>)}</div>}
-    {activeCell && <div className="hour-tooltip" aria-hidden="true"><strong>Zone {activeCell.zone_id} · {interval(activeCell.hour, activeCell.smooth_hours)}</strong><span>Baseline {rate(activeCell.p_baseline)} · n {count(activeCell.baseline_n)}</span><span>Monitoring {rate(activeCell.p_monitoring)} · n {count(activeCell.monitoring_n)}</span><span>{change(activeCell.change_pts)} · {statusLabel(activeCell.status)}</span></div>}
+    {activeCell && <div className="hour-tooltip" aria-hidden="true"><strong>Zone {activeCell.zone_id} · {interval(activeCell.hour, activeCell.smooth_hours)}</strong><span>Baseline {rate(activeCell.p_baseline)} · calls {count(activeCell.baseline_n)}</span><span>Monitoring {rate(activeCell.p_monitoring)} · calls {count(activeCell.monitoring_n)}</span><span>{change(activeCell.change_pts)} · {statusLabel(activeCell.status)}</span></div>}
     <div className="hour-readout" aria-live="polite" aria-atomic="true">
-      {chosenCell ? <><div className="hour-readout-heading"><strong>Zone {chosenCell.zone_id} · {interval(chosenCell.hour, chosenCell.smooth_hours)}</strong><b>{change(chosenCell.change_pts)}</b><span>{statusLabel(chosenCell.status)}</span></div><div className="hour-readout-values"><span>Baseline: n {count(chosenCell.baseline_n)} · {rate(chosenCell.p_baseline)}</span><span>Monitoring: n {count(chosenCell.monitoring_n)} · {rate(chosenCell.p_monitoring)}</span><span>America/New_York · end hour exclusive</span></div></> : <><strong>Select a cell to inspect its hourly comparison.</strong><span>Baseline and monitoring rates, counts, change and evidence status appear here.</span></>}
+      {chosenCell ? <><div className="hour-readout-heading"><strong>Zone {chosenCell.zone_id} · {interval(chosenCell.hour, chosenCell.smooth_hours)}</strong><b>{change(chosenCell.change_pts)}</b><span>{statusLabel(chosenCell.status)}</span></div><div className="hour-readout-values"><span>Baseline calls: {count(chosenCell.baseline_n)} · {rate(chosenCell.p_baseline)}</span><span>Monitoring calls: {count(chosenCell.monitoring_n)} · {rate(chosenCell.p_monitoring)}</span><span>America/New_York · end hour exclusive</span></div></> : <><strong>Select a cell to inspect its hourly comparison.</strong><span>Baseline and monitoring rates, counts, change and evidence status appear here.</span></>}
     </div>
-    <div className="hour-chart-notes"><p>{data.exploratory_note || 'Hourly colors are descriptive; there is no per-cell statistical flag.'} Service target q is separate.</p><p id={instructionId}>Arrow keys move focus. Enter or Space selects a cell and its zone. Local hours; band end times are exclusive.</p></div>
+    <div className="hour-chart-notes"><p>Colors compare late-call rates with the first 14 days; each point means one extra late call per 100. Colors alone are not alerts.</p><p id={instructionId}>Arrow keys move focus. Enter or Space selects a cell and its zone. Local hours; band end times are exclusive.</p></div>
   </div>
 }
 

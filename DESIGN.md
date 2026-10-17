@@ -286,3 +286,9 @@ The reduced-motion media rule disables transitions and animation. Plot geometry 
 - Don't show unavailable evidence as zero or as a reassuring normal state.
 - Don't add decorative imagery or shadows to the data instrument panels.
 - Don't replace real chart data with decorative sparklines or infer a cause from stage durations.
+
+## Post-deployment inspection refinement
+
+Daily chart inspection occupies a reserved lane above the plot, follows the pointer horizontally and stays within panel bounds; keyboard inspection uses the same lane. No data/control line is obscured. The five-record incident list has no internal vertical scroll in its default view; R and +T headers retain minute units and accessible expanded names. Timestamp expansion preserves horizontal scrolling.
+
+Issue #7: operator labels use Dataset 1–3, plain-language chart legends/captions, Daily p chart → Where & when → Why, and “90% arrive within”. Longest responses are contextual observations, not automatic anomalies. The daily tooltip formats only the selected day’s supplied late/n counts; missing data is never called normal.

@@ -1,8 +1,8 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel } from './App.jsx'
-import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex } from './Charts.jsx'
+import { StatusBadge, SlowestTable, ZoneOverview, StageTable, StageEvidence, largestStageShift, ScenarioPicker, timeBandConclusion, DailyData, dailyEvidenceLabel, analysisTabs } from './App.jsx'
+import { DailyPChart, BandChart, StageChart, stageShift, nearestDateIndex, dailyTooltipText } from './Charts.jsx'
 import { getDashboard, getZoneAnalysis } from './api/client.js'
 import { percent, minutes } from './format.js'
 import { initialFocus } from './focus.js'
@@ -15,7 +15,7 @@ describe('precomputed dashboard evidence', () => {
     expect(minutes(undefined)).toBe('—')
     expect(percent(0)).toBe('0.0%')
     const html = renderToStaticMarkup(<StatusBadge value={null} status="insufficient_evidence" />)
-    expect(html).toContain('Insufficient evidence')
+    expect(html).toContain('Not enough data')
     expect(html).not.toContain('No daily signal')
   })
 
@@ -90,7 +90,7 @@ describe('precomputed dashboard evidence', () => {
     const html = renderToStaticMarkup(<ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected="C" onSelect={() => {}} />)
     expect((html.match(/aria-label="Inspect zone /g) || []).length).toBe(6)
     expect(html).toContain('Six response districts')
-    expect(html).toContain('6 daily')
+    expect(html).toContain('Yes')
     expect(html).toContain('Above service target')
     expect(html).toContain('Within service target')
   })
@@ -113,12 +113,12 @@ describe('precomputed dashboard evidence', () => {
     expect(html).toContain('Call handling / assignment')
     expect(html).toContain('Turnout')
     expect(html).toContain('Travel')
-    expect(html).toContain('P90 · min')
+    expect(html).toContain('90% within · min')
     expect(html).toContain(analysis.stages[2].baseline_p90_min.toFixed(1))
     const chart = renderToStaticMarkup(<StageEvidence stages={analysis.stages} />)
-    expect(chart).toContain('Stage medians do not add')
+    expect(chart).toContain('Stage times cannot be added')
     expect(chart).toContain(analysis.stages[2].monitoring_p90_min.toFixed(1))
-    expect(renderToStaticMarkup(<StageEvidence stages={analysis.stages} showData />)).toContain('P90 · min')
+    expect(renderToStaticMarkup(<StageEvidence stages={analysis.stages} showData />)).toContain('90% within · min')
   })
 
   it('reports the largest descriptive stage shift from supplied values', async () => {
@@ -137,14 +137,14 @@ describe('precomputed dashboard evidence', () => {
     summary.zones[0].deterioration_flag = null
     summary.zones[0].status = 'insufficient_evidence'
     const overview = renderToStaticMarkup(<ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected="A" />)
-    expect(overview).toContain('Daily: unavailable')
+    expect(overview).toContain('Not enough data')
     const point = { date: '2026-10-01', phase: 'monitoring', n: 100, late: 10, p: .1, cl: .1, ucl: .2, lcl: 0, status: 'ok', deterioration_flag: null }
     const table = renderToStaticMarkup(<DailyData points={[point]} />)
-    expect(table).toContain('Evidence unavailable')
-    expect(table).not.toContain('No upper-limit signal')
-    expect(dailyEvidenceLabel(point)).toBe('Evidence unavailable')
-    expect(dailyEvidenceLabel({ ...point, deterioration_flag: false })).toBe('No upper-limit signal')
-    expect(dailyEvidenceLabel({ ...point, phase: 'baseline' })).toBe('Baseline observation')
+    expect(table).toContain('Not enough data')
+    expect(table).not.toContain('Within usual range')
+    expect(dailyEvidenceLabel(point)).toBe('Not enough data')
+    expect(dailyEvidenceLabel({ ...point, deterioration_flag: false })).toBe('Within usual range')
+    expect(dailyEvidenceLabel({ ...point, phase: 'baseline' })).toBe('Baseline day')
   })
 
   it('opens supplied daily or strongest exploratory band evidence without scenario-truth labels', async () => {
@@ -178,8 +178,8 @@ describe('precomputed dashboard evidence', () => {
     const { summary } = await getDashboard('morning_tail')
     const html = renderToStaticMarkup(<HourHeatmap data={summary.hour_heatmap} bandsByZone={summary.time_of_day_all_zones} selectedZone="D" selectedCell={{ zone_id: 'D', hour: 8 }} />)
     expect((html.match(/class="hour-cell/g) || [])).toHaveLength(144)
-    expect(html).toContain('+22.5 pp')
-    expect(html).toContain('Insufficient evidence')
+    expect(html).toContain('+22.5 points')
+    expect(html).toContain('Not enough data')
     expect(html).toContain('Zone D, 06:00–10:00: supplied time-band signal.')
     expect((html.match(/tabindex="0"/g) || [])).toHaveLength(1)
     expect(cellTone({ status: 'insufficient_evidence', change_pts: 0 })).toBe(cellTone({ status: 'no_data', change_pts: null }))
@@ -200,15 +200,15 @@ describe('precomputed dashboard evidence', () => {
     const { summary } = await getDashboard('normal')
     delete summary.time_of_day_all_zones
     const zone = renderToStaticMarkup(<ZoneOverview zones={summary.zones} selected="A" />)
-    expect(zone).toContain('Bands: unavailable')
+    expect(zone).toContain('Not enough data')
   })
 
   it('offers three direct explained scenario choices, never a zone-only dataset', () => {
     const html = renderToStaticMarkup(<ScenarioPicker scenario="recovery" onSelect={() => {}} />)
     expect(html).not.toContain('<select')
     expect((html.match(/class="scenario-choice"/g) || [])).toHaveLength(3)
-    expect(html).toContain('All zones · C worsens, then recovers')
-    expect(html).toContain('All zones · D morning delays')
+    expect(html).toContain('C travel slowdown Oct 1–6 · then fixed')
+    expect(html).toContain('D 06:00–10:00 · a few 35–42 min waits')
     expect((html.match(/aria-pressed="true"/g) || [])).toHaveLength(1)
   })
 
@@ -230,7 +230,7 @@ describe('precomputed dashboard evidence', () => {
     expect(html).toContain('Outer to inner')
     expect(html).toContain('Zone D, 06:00–10:00: supplied time-band signal.')
     expect(html).not.toContain('Zone C, 16:00–20:00: supplied time-band signal.')
-    expect(html).toContain('+22.5 pp')
+    expect(html).toContain('+22.5 points')
     expect(clockArc(0, 1, 30, 50, 100, 100)).toMatch(/^M100,50A50,50/)
     expect(clockArc(23, 24, 30, 50, 100, 100)).not.toMatch(/NaN|undefined/)
   })
@@ -253,4 +253,19 @@ describe('precomputed dashboard evidence', () => {
     }
   })
 
+})
+
+
+describe('issue 7 supervisor clarity', () => {
+  it('displays the raw daily count for Normal E October 11, without pooling it', async () => {
+    const { analyses } = await getDashboard('normal')
+    const day = analyses.E.daily_p_chart.points.find(p => p.date === '2026-10-11')
+    expect(day).toMatchObject({ late: 24, n: 100 })
+    expect(dailyTooltipText(day)).toBe('Oct 11 · 24 of 100 calls late (24.0%) · Within usual range')
+    expect(dailyTooltipText(day)).not.toMatch(/200|UCL|LCL/)
+  })
+  it('orders the operator tabs and retains missing-data warnings', () => {
+    expect(analysisTabs).toEqual([['daily', 'Daily p chart'], ['where', 'Where & when'], ['stages', 'Why']])
+    expect(dailyTooltipText({ date: '2026-10-11', late: null, n: 0, p: null, status: 'no_data' })).toContain('Not enough data')
+  })
 })
