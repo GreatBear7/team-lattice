@@ -9,8 +9,10 @@ sections 3, 5 and 7. Status: **draft by B, waiting for C and D to agree**.
 - **C** builds the screens from the two `*.mock.json` files.
 - **D** returns these files from the endpoints until `app/qc.py` is ready, then swaps in real calls.
 - **B** makes `app/qc.py` produce exactly these fields (plus tests).
-- Mock files carry `"mock": true`. Their numbers are invented (hidden_tail-like story) but
-  internally consistent: every `ucl`/`lcl` is computed from the mock counts with the plan's formula.
+- Mock files carry `"mock": true`. Their numbers are invented (an illustrative zone C slowdown
+  that lasts to Oct 11, drafted before the final datasets) but internally consistent: every
+  `ucl`/`lcl` is computed from the mock counts with the plan's formula. Real numbers for the final
+  datasets come from `app/qc.py` once D wires it in.
 - Changing a field name after agreement needs a message to all three of B, C and D.
 
 ## Conventions
@@ -45,14 +47,14 @@ sections 3, 5 and 7. Status: **draft by B, waiting for C and D to agree**.
 ### `POST /datasets/load`
 
 Request, one of:
-- JSON `{ "scenario": "normal" | "hidden_tail" | "recovery" }`
+- JSON `{ "scenario": "normal" | "recovery" | "morning_tail" }` (the three files in `data/`)
 - multipart form upload, field `file` = a CSV with the schema in Final_Plan section 3
 
 Response 200:
 
 ```json
 {
-  "dataset_id": "hidden_tail",
+  "dataset_id": "recovery",
   "source": "scenario",
   "rows": 16800,
   "zones": ["A", "B", "C", "D", "E", "F"],
@@ -74,7 +76,8 @@ Response 422 (invalid upload; nothing loaded):
 }
 ```
 
-The loaded dataset lives in server memory; after a restart the UI must load again.
+The loaded dataset lives in server memory; after a restart the UI must load again. The API keeps
+`qc.prepare(df)` of it (validated and parsed once), so later requests are fast.
 
 ### `GET /zones/summary`
 
@@ -95,6 +98,37 @@ Each `zones[]` item:
 | `deterioration_days`, `first_flag_date`, `last_flag_date` | int, date or null | when it flagged |
 | `status` | string | see table above |
 
+**Added in H-10 (time-of-day views; C and D wire these in after the core deploy):**
+
+Query parameters for this endpoint: `window` = `14` (default, whole monitoring period) or `7`
+(last 7 days, i.e. `monitoring_start` = 2026-10-05 for these datasets; the baseline never changes),
+and `smooth` = `1` (default, raw hours, for the grid heatmap) or `3` (3-hour circular smoothing,
+for the 24-hour clock).
+
+- `hour_heatmap`: from `qc.late_rate_change_by_hour(df, monitoring_start=..., smooth_hours=...)`
+  ```json
+  "hour_heatmap": {
+    "metric": "change in % late, monitoring minus baseline (percentage points)",
+    "window_days": 14, "smooth_hours": 1,
+    "exploratory_note": "144 descriptive cells; no per-cell statistical flag. Flags are the time bands.",
+    "cells": [ { "zone_id": "D", "hour": 5, "smooth_hours": 1,
+                 "baseline_n": 30, "baseline_late": 4, "p_baseline": 0.133,
+                 "monitoring_n": 32, "monitoring_late": 4, "p_monitoring": 0.125,
+                 "change_pts": -0.8, "status": "insufficient_evidence" },
+               "... (real values: morning_tail.csv, zone D hour 05)" ]
+  }
+  ```
+  144 cells (6 zones x 24 local hours), ordered zone then hour. `status`: `ok`;
+  `insufficient_evidence` (< 5 late or < 5 non-late baseline calls: draw grey and hatched, numbers
+  kept for the hover); `no_data` (a side with no calls: `null` rate and `change_pts`, never 0).
+  Always all six zones A-F (a zone without calls has `no_data` cells), so the grid is a fixed 6 x 24.
+  With `smooth=3` the counts and statuses are pooled over 3 hours, so a cell can be `ok` there and
+  `insufficient_evidence` raw. A grey cell with `change_pts` 0.0 is still grey: never colour it as
+  "no change".
+- `time_of_day_all_zones`: `{ "A": [5 bands], ..., "F": [5 bands] }`, each band exactly the
+  `time_of_day.bands[]` item below, from `qc.bands_all_zones(df, monitoring_start=...)`. These are
+  the statistical flags: draw them as the outlines on the grid and on the clock.
+
 ### `GET /zones/{zone_id}/analysis`
 
 Example: [`zone_C_analysis.mock.json`](zone_C_analysis.mock.json). Top level adds:
@@ -104,10 +138,12 @@ Example: [`zone_C_analysis.mock.json`](zone_C_analysis.mock.json). Top level add
   (28 days), each `date`, `phase` (`baseline` / `monitoring`), `n`, `late`, `p`, `cl`, `ucl`,
   `lcl`, `deterioration_flag` (`null` on baseline days), `above_service_target`, `status`.
 - `stages[]`: `call_handling`, `turnout`, `travel`, each with `from` / `to` columns,
-  `baseline_median_min`, `monitoring_median_min`, `monitoring_p90_min`.
+  `baseline_median_min`, `monitoring_median_min`, `baseline_p90_min` (added in H-10),
+  `monitoring_p90_min`. Compare the two P90s: a slower tail shows there even when medians barely move.
 - `time_of_day`: `exploratory_note` and `bands[]`, each `band`, `label`, `interval_local`,
   `baseline_n`, `baseline_late`, `p0_band`, `n_band`, `monitoring_late`, `p_band`, `ucl`, `lcl`,
-  `flag`, `status`. Bands are half-open, by local `unit_notified_at`.
+  `flag`, `status`. Bands are half-open, by local `unit_notified_at`. Accepts `window` = `14` or
+  `7` like `/zones/summary` (H-10).
 - `slowest_incidents[]`: up to five, this zone only, ordered by `response_min` descending then
   `incident_id` ascending; each `incident_id`, `zone_id`, `unit_notified_at`, `on_scene_at`,
   `response_min`, `minutes_over_target` (= max(0, R - T)). Empty zone: `[]`.
@@ -116,6 +152,9 @@ Unknown `zone_id`: 404 `{ "error": "unknown zone" }`. No dataset loaded: 409
 `{ "error": "no dataset loaded" }`.
 
 ## What the mock data shows (so C can build every state)
+
+Illustrative only; the final datasets are `normal`, `recovery` (zone C flagged Oct 1-6, then back in
+control) and `morning_tail` (no daily flags; zone D morning_rush band flagged). See `data/README.md`.
 
 - A, B (downtown): under the 10% target, not flagged.
 - C (residential): above target **and** flagged from 2026-10-01 (day 18); travel median rises.

@@ -1,6 +1,6 @@
 {
   "mock": true,
-  "scenario": "hidden_tail",
+  "scenario": "illustrative",
   "zone_id": "C",
   "zone_type": "residential",
   "units": {

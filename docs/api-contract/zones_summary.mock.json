@@ -1,6 +1,6 @@
 {
   "mock": true,
-  "scenario": "hidden_tail",
+  "scenario": "illustrative",
   "units": {
     "time": "minutes",
     "rate": "proportion 0-1"
