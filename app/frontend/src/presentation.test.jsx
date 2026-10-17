@@ -66,8 +66,8 @@ describe('precomputed dashboard evidence', () => {
   it('draws supplied evidence and offers meaningful empty states', async () => {
     const a = await getZoneAnalysis('C')
     const daily = renderToStaticMarkup(<DailyPChart chart={a.daily_p_chart} q={.1} />)
-    expect(daily).toContain('Baseline reference')
-    expect(daily).toContain('Above upper control limit')
+    expect(daily).toContain('Baseline day')
+    expect(daily).toContain('Worse than normal')
     expect(renderToStaticMarkup(<BandChart bands={a.time_of_day.bands} />)).toContain('PM rush')
     expect(renderToStaticMarkup(<StageChart stages={a.stages} />)).toContain('Travel')
     expect(renderToStaticMarkup(<DailyPChart chart={{points: []}} />)).toContain('No completed observations')
