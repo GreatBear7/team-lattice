@@ -23,3 +23,6 @@
 .chart-inspection strong{font-weight:650;color:#263c4f}
 .chart-empty{min-height:140px;display:grid;place-items:center;color:#667b8e;font-size:13px;text-align:center;padding:20px}
 @media(max-width:700px){.chart-legend{font-size:12px;gap:6px 10px}.chart-inspection{font-size:12px;gap:4px 10px}.chart-tooltip{font-size:12px;max-width:240px}.chart-svg-wrap{min-height:140px}}
+
+/* Floating inspection shares the canvas; no reserved blank space. */
+.daily-chart .chart-tooltip { right:auto; max-width:none; box-sizing:border-box; padding:8px 10px; gap:3px; font-size:12px; line-height:1.4; }

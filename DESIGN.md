@@ -286,3 +286,15 @@ The reduced-motion media rule disables transitions and animation. Plot geometry 
 - Don't show unavailable evidence as zero or as a reassuring normal state.
 - Don't add decorative imagery or shadows to the data instrument panels.
 - Don't replace real chart data with decorative sparklines or infer a cause from stage durations.
+
+## Manager decision view
+
+The left rail pairs a three-column District overview (district, late calls, attention) with an interactive Response briefing. The briefing explains rather than repeats the table: a short conclusion followed by What changed?, What to check?, or Limits; each answer can open its supporting chart. A compact headline number supports the conclusion (daily affected days or the relevant late rate), with its own unit; there is no external AI integration. Priorities: daily deterioration, then a flagged time band, then chronic target failure/stability; missing comparisons stay explicitly incomplete. Dataset and district selection update the briefing; the shared time-band window updates band conclusions only. Hovering a date never changes the manager conclusion. The briefing fits its content, its scope follows the answer without auto-pushed whitespace, and remaining rail height is allocated to the district rows. No scenario-specific hardcoded conclusions or new statistical alarms.
+
+Daily inspection floats inside the plot with no reserved space or instruction text. Position candidates avoid the selected observation and prefer regions with fewer plotted marks/control lines. Pointer/date snapping and keyboard inspection remain available. Tooltip counts come only from the selected day’s API late/n values. The full chart height is restored.
+
+Issue #7: operator labels use Dataset 1–3, plain-language captions, Daily p chart → Where & when → Why and “90% arrive within”. Technical details remain in documentation. Desktop verification is in scope; the user explicitly excluded mobile verification for this revision.
+
+## First-use pages
+
+The H12 home page preserves the teal identity and trace animation but reduces the first visit to purpose, one dashboard entry and three dataset links. The guide presents three start steps and four status explanations by default; CSV schema and the original worked statistical methods are retained in native disclosures. Repetitive FAQ/glossary tables and obsolete slowest-call instructions are removed. Dashboard navigation uses relative Home/Guide links and dataset query parameters, supporting deployment subpaths.

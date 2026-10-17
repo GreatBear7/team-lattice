@@ -58,7 +58,7 @@ Fixed for every team:
 - A small tool that runs beats a large tool that does not.
 
 ## 6. Outputs
-- **What the user sees:** A compact supervisor dashboard: flat Normal/Recovery/Morning tail scenario selection or CSV upload; six-district late rate (%) and response P90 (minutes); separate service-target and deterioration labels; selected-zone daily p chart with nearest-date inspection; zone×hour heatmap, selectable 24-hour clock and five-band comparison; baseline/monitoring call-handling, turnout and travel median/P90; and the five slowest completed responses with timestamps. Select a district to link the evidence. Full-period/latest-seven-day and raw/pooled-three-hour options affect time-of-day views only. Summary, daily charts and slowest calls retain full monitoring coverage. Call handling precedes R; stage quantiles cannot be added. Errors and insufficient evidence remain visible; API failure never substitutes mock data.
+- **What the user sees:** A compact supervisor dashboard: flat Normal/Recovery/Morning tail scenario selection or CSV upload; six-district late rate (%) and response P90 (minutes); separate service-target and deterioration labels; selected-zone daily p chart with nearest-date inspection; zone×hour heatmap, selectable 24-hour clock and five-band comparison; baseline/monitoring call-handling, turnout and travel median/P90; and an interactive Response briefing explaining the selected district’s change, investigation options and limitations with supporting chart links. Select a district to link the evidence. Full-period/latest-seven-day and raw/pooled-three-hour options affect time-of-day views only. Summary and daily charts retain full monitoring coverage; time-band insight follows the selected time window. Call handling precedes R; stage quantiles cannot be added. Errors and insufficient evidence remain visible; API failure never substitutes mock data.
   Example: "a control chart with out-of-control points in red, plus 'stop the line: yes/no'"
 
 ## 7. Test datasets and codebook (rubric: demo 10, datasets 5, codebook 5)
@@ -77,3 +77,7 @@ collect this data for real.
 What we will NOT build, so nobody (human or agent) builds it by accident.
 - Default: logins, databases, real customer data, a second statistic before the first one is tested.
 - No simulated/live incident stream, unfinished-call prediction, incident write/edit workflow, dispatcher performance ranking, causal diagnosis, clinical outcome prediction, optimization/forecasting, X-bar/S production chart, or scenario-truth-driven analysis. Uploads are transient in-memory datasets (ten retained plus three built-ins), one worker/process; restart requires re-upload. Authentication, persistent/multi-process storage and Supabase are outside this local version.
+
+## First-use entry points
+
+The home page at `/` explains the purpose and links to `/app` or a selected dataset via `app?dataset=normal|recovery|morning_tail`. The integrated dashboard links back to Home and to `/guide`. Guide content defaults to quick-start instructions and attention labels; CSV requirements and the original mathematical methods remain available on demand. `/docs` and statistics endpoints are unchanged. This integrates the team’s H12 pages without replacing the latest manager dashboard.

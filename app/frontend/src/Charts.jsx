@@ -45,8 +45,18 @@ function paths(points, getValue, x, y) {
 }
 
 function pointDescription(point) {
-  const signal = point.phase === 'baseline' ? 'Baseline reference' : point.status !== 'ok' || point.deterioration_flag == null ? 'Insufficient evidence' : point.deterioration_flag ? 'Above upper control limit' : 'No upper-limit signal'
-  return `${dateLabel(point.date)}. ${point.phase}. Late ${integer(point.late)} of ${integer(point.n)}; ${percent(point.p)}. Upper limit ${percent(point.ucl)}. ${signal}.`
+  return dailyTooltipText(point)
+}
+
+export function dailyPointStatus(point) {
+  if (point.phase === 'baseline') return 'Baseline day'
+  if (point.status !== 'ok' || point.deterioration_flag == null) return 'Not enough data'
+  return point.deterioration_flag ? 'Worse than normal' : 'Within usual range'
+}
+
+export function dailyTooltipText(point) {
+  // Always use this day's API counts; never a zone total or pooled-hour count.
+  return `${dateLabel(point.date)} · ${integer(point.late)} of ${integer(point.n)} calls late (${percent(point.p)}) · ${dailyPointStatus(point)}`
 }
 
 export function nearestDateIndex(localX, left, plotWidth, count) {
@@ -58,6 +68,7 @@ export function nearestDateIndex(localX, left, plotWidth, count) {
 export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact = false }) {
   const descriptionId = useId()
   const [active, setActive] = useState(null)
+  const [pointer, setPointer] = useState(null)
   const [plotRef, size] = useMeasuredPlot(800, compact ? 185 : 210, chart?.points?.length)
   const points = Array.isArray(chart?.points) ? chart.points : []
   if (!points.length) return <EmptyChart />
@@ -79,13 +90,34 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
     if (!bounds.width || event.pointerType === 'touch') return
     const index = nearestDateIndex((event.clientX - bounds.left) * w / bounds.width, margin.left, pw, points.length)
     setActive(index)
+    setPointer({ x: event.clientX - bounds.left, y: event.clientY - bounds.top })
   }
   const ticks = Array.from({ length: 5 }, (_, index) => ymax * index / 4)
   const dateIndices = [...new Set([0, Math.round((points.length - 1) / 4), Math.round((points.length - 1) / 2), Math.round((points.length - 1) * .75), points.length - 1])]
 
+  const tooltipWidth = Math.min(280, Math.max(160, w - 16))
+  const tooltipHeight = 78
+  const anchor = pointer || { x: active == null ? w/2 : x(active), y: activePoint && finite(activePoint.p) ? y(activePoint.p) : h/2 }
+  const clamp = (value, max) => Math.max(8, Math.min(max, value))
+  const candidates = [
+    [anchor.x+16, anchor.y-tooltipHeight-16], [anchor.x-tooltipWidth-16, anchor.y-tooltipHeight-16],
+    [anchor.x+16, anchor.y+16], [anchor.x-tooltipWidth-16, anchor.y+16],
+    [8, 8], [w-tooltipWidth-8, 8], [8, h-tooltipHeight-8], [w-tooltipWidth-8, h-tooltipHeight-8],
+  ].map(([left,top]) => ({ left: clamp(left,w-tooltipWidth-8), top: clamp(top,h-tooltipHeight-8) }))
+  const tooltipPosition = candidates.sort((a,b) => {
+    const score = box => {
+      const inside = (px,py) => px >= box.left-6 && px <= box.left+tooltipWidth+6 && py >= box.top-6 && py <= box.top+tooltipHeight+6
+      let penalty = activePoint && finite(activePoint.p) && inside(x(active),y(activePoint.p)) ? 10000 : 0
+      points.forEach((point,index) => {
+        for (const key of ['p','cl','ucl','lcl']) if (finite(point[key]) && inside(x(index), y(point[key]))) penalty += key === 'p' ? 100 : 10
+      })
+      return penalty + Math.hypot(box.left-anchor.x,box.top-anchor.y)/100
+    }
+    return score(a)-score(b)
+  })[0]
   return <div className={`daily-chart ${compact ? 'chart-compact' : ''}`}>
     <div className="chart-svg-wrap" ref={plotRef}>
-      <svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="group" aria-label="Daily late-rate p control chart" aria-describedby={descriptionId} onPointerMove={inspectPointer} onPointerLeave={() => setActive(null)}>
+      <svg className="chart-plot" viewBox={`0 0 ${w} ${h}`} role="group" aria-label="Daily late-rate p control chart" aria-describedby={descriptionId} onPointerMove={inspectPointer} onPointerLeave={() => { setActive(null); setPointer(null) }}>
         <desc id={descriptionId}>Daily late rates with frozen historical baseline and supplied upper and lower control limits. Baseline dates are shaded. Red triangles indicate monitoring days flagged by the statistical service. Move anywhere across the plot to inspect the nearest date, or focus a point and use arrow keys.</desc>
         <rect x={margin.left} y={margin.top} width={Math.max(0, boundary - margin.left)} height={ph} fill="#f0f4f7" />
         {selectedIndex >= 0 && <rect className="chart-date-selection" x={Math.max(margin.left, x(selectedIndex) - step / 2)} y={margin.top} width={Math.min(step, pw)} height={ph} fill="#dce9fa" opacity=".65" />}
@@ -100,7 +132,7 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         {points.map((point, index) => {
           const px = x(index), py = finite(point.p) ? y(point.p) : y(0)
           const isFlagged = point.deterioration_flag === true
-          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => setActive(index)} onBlur={() => setActive(null)} onClick={() => onSelectDate?.(point.date)} onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const next = Math.max(0, Math.min(points.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1))); event.currentTarget.parentElement.querySelectorAll('.chart-point')[next]?.focus(); return } if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
+          return <g key={point.date ?? index} className="chart-point" tabIndex={0} role="button" aria-label={`${pointDescription(point)} Select day.`} aria-pressed={selectedDate === point.date} onFocus={() => { setActive(index); setPointer(null) }} onBlur={() => setActive(null)} onClick={() => { setActive(index); onSelectDate?.(point.date) }} onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const next = Math.max(0, Math.min(points.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1))); event.currentTarget.parentElement.querySelectorAll('.chart-point')[next]?.focus(); return } if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectDate?.(point.date) } }}>
             <title>{pointDescription(point)}</title>
             <circle cx={px} cy={py} r="11" fill="transparent" className="chart-point-hit" />
             {finite(point.p) ? isFlagged ? <path d={`M${px},${py - 5.4} L${px + 5.2},${py + 4.1} L${px - 5.2},${py + 4.1} Z`} fill={palette.red} stroke="#fff" strokeWidth="1.2" /> : <circle cx={px} cy={py} r={selectedDate === point.date ? 4.5 : 3.2} fill={palette.blue} stroke="#fff" strokeWidth="1.2" /> : <path d={`M${px - 3},${py - 3}l6,6m0,-6l-6,6`} stroke={palette.muted} />}
@@ -108,7 +140,7 @@ export function DailyPChart({ chart, q = .1, selectedDate, onSelectDate, compact
         })}
         {dateIndices.map(index => <text key={index} x={x(index)} y={h - 9} textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'} className="chart-axis-label">{dateLabel(points[index].date)}</text>)}
       </svg>
-      {activePoint && <div className="chart-tooltip" role="status"><strong>{dateLabel(activePoint.date)} · {activePoint.phase}</strong><span>Late rate {percent(activePoint.p)} · {integer(activePoint.late)} / {integer(activePoint.n)} calls</span><span>UCL {percent(activePoint.ucl)} · LCL {percent(activePoint.lcl)}</span><span>{activePoint.status !== 'ok' || (activePoint.phase !== 'baseline' && activePoint.deterioration_flag == null) ? 'Evidence unavailable' : activePoint.deterioration_flag === true ? 'Upper-limit signal' : activePoint.phase === 'baseline' ? 'Baseline observation' : 'No upper-limit signal'}</span></div>}
+      {activePoint && <div className="chart-tooltip" role="status" style={{ ...tooltipPosition, width: tooltipWidth }}><strong>{dateLabel(activePoint.date)} · {dailyPointStatus(activePoint)}</strong><span>{integer(activePoint.late)} of {integer(activePoint.n)} calls late · {percent(activePoint.p)}</span></div>}
     </div>
   </div>
 }
@@ -148,7 +180,7 @@ export function BandChart({ bands }) {
 
 const stageNames = { call_handling: 'Call handling', turnout: 'Turnout', travel: 'Travel' }
 const stageSpans = { call_handling: 'Call → unit notified', turnout: 'Notified → en route', travel: 'En route → on scene' }
-const stageMeasures = [['median', 'Median'], ['p90', 'P90']]
+const stageMeasures = [['median', 'Typical'], ['p90', '90% within']]
 
 export function stageShift(row, measure) {
   const base = row[`baseline_${measure}_min`], current = row[`monitoring_${measure}_min`]

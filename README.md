@@ -12,7 +12,7 @@ Requires Python 3.12 (the version the course Connect server runs) and Node.js 20
 bash app/testme.sh
 ```
 
-Open **http://127.0.0.1:8000/**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. The same app is deployed publicly at https://connect.systems-apps.com/response-watch/.
+Open **http://127.0.0.1:8000/** for the home page; choose a dataset or enter the dashboard at **http://127.0.0.1:8000/app**. The quick guide is at **http://127.0.0.1:8000/guide**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. The public app is available at https://connect.systems-apps.com/response-watch/.
 
 - [Application setup, inputs, endpoints, parameters, tests and deployment](app/README.md)
 - [Supervisor demo for all three datasets](demo/README.md)

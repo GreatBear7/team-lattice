@@ -98,6 +98,7 @@ tasks:
         scaffolding and scripts remain D-owned; app/qc.py and root tests
         remain B-owned. Do not copy a backend scaffold over these paths.
       definition_of_done: "npm --prefix app/frontend test && npm --prefix app/frontend run build"
+      refinement: "Manager decision view: three-column District overview and interactive Response briefing replace duplicate metrics/incident list; chart tooltip stays inside canvas. Briefing follows zone/dataset/time-band window and links to evidence; no external AI. Pure labels of B outputs; 76 frontend tests and API-mode build pass. Desktop verification only as requested; no main push or deployment."
       result: "69 frontend tests passed; production build passed; portable H-11 fixture refresh passed; 25 HTTP harness requests passed; desktop/mobile and grid-clock transition reviewed. C frontend complete on frontend; D backend/deployment pending."
     backend_scope:
       owns: ["app/api.py", "app/README.md", "app/requirements.txt", "app/requirements-dev.txt", "app/*.sh", "app/scenario_data/", "app/manifest.json", "app/.python-version", "app/.gitignore", "tests/test_api.py", ".github/workflows/", ".github/scripts/", "app/frontend/dist/"]
@@ -244,3 +245,12 @@ tasks:
       recovery: C midday and evening rush; morning_tail: D morning rush);
       an independent stats review passes.
     result: "Band flag is now a pooled two-proportion z > 3 (integer-exact; ucl/lcl are the z = +-3 lines); false-alarm months 57% -> 3.7% in 1,000 sims, planted problems still flagged; 110 tests pass; stats-reviewer PASS"
+
+  - id: H-12
+    title: Home and guide integration with the manager dashboard
+    status: done
+    owner: "Claire / Codex integrating Saptarshi H12"
+    owns: ["app/frontend/public/", "app/api.py", "tests/test_api.py", "app/frontend/", "app/manifest.json", "README.md", "app/README.md"]
+    notes: "User authorized restoring h12-home-guide, simplifying first-use content, and integrating all current UI into dev via PR. Preserve methods in collapsed sections; do not change statistics/runtime."
+    definition_of_done: "pytest tests -q; frontend tests/build; /, /app, /guide, /docs and API health return 200; homepage dataset links select intended data; desktop Home/Guide/Dashboard navigation works"
+    result: "224 pytest tests passed; 76 frontend tests passed; production build passed; browser verified home Dataset 2 -> /app?dataset=recovery, C six-day briefing, guide disclosures and Home return. Local integration accepted; publishing from dev remains a separate deployment step."
