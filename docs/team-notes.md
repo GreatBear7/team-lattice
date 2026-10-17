@@ -37,6 +37,25 @@ Updated 2026-10-16 by Saptarshi (B).
 
 ## C: front end, branch `h04-frontend`
 
+- **ACTION NEEDED, H-11 (merged to `dev` in PR #3, 2026-10-16, Saptarshi): regenerate the mock
+  fixtures.** The time-band flag in `app/qc.py` is now a pooled two-proportion z test (z > 3).
+  The old rule treated the baseline rate as exact and gave false band alarms in 57% of simulated
+  normal months; the new one in 3.7%. The daily p chart did not change. What changes for you:
+  - Re-merge `dev` into `h04-frontend`, then rebuild `app/frontend/src/mocks/{normal,recovery,
+    morning_tail}.json` and `source.json` from the new `qc.py` (stats ref `8776546`). The CSVs
+    did not change.
+  - Band flags now: **normal: none** (zone C evening is no longer flagged: z 2.23);
+    recovery: C midday and evening rush; morning_tail: **D morning rush only** (37.1% vs
+    UCL 28.7%, z 5.05). Same with the 7-day window. The initial zone in Normal operations should
+    no longer open on a flagged zone.
+  - Every band `ucl`/`lcl` value changes (the limit line is now the rate at z = 3, still drawn the
+    same way: `flag` is exactly `p_band > ucl`). Each band item has a new field **`z`** (number,
+    or null when there is not enough evidence). Showing it is optional.
+  - Update text that quotes old numbers: `app/frontend/README.md` says "C's evening band has an
+    exploratory chance signal" and "UCL 24.9%"; tests in `src/` that assert old band values.
+  - Keep the "30 exploratory comparisons" note; a chance flag is now about 4% per normal month.
+  - Details: `docs/Final_Plan.en.md` section 5.4, `docs/api-contract/README.md`, PR #3.
+
 - **After the core deploy (H-10 views):** a zone x hour grid heatmap and a 24-hour clock (one ring
   per zone, angle = hour), both from `hour_heatmap.cells`; colour = `change_pts` on a diverging
   red-blue scale, grey midpoint at 0, symmetric -25..+25 points (labels in points, not %);

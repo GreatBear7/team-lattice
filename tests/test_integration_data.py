@@ -50,13 +50,15 @@ def test_flagged_days(results, name):
     assert flagged == EXPECTED_FLAGS[name]
 
 
-# Time-band flags on the teammate data. Computed independently twice (a standalone draft and
-# app.qc) with identical results. normal.csv's zone C evening_rush flag (p 0.183 vs UCL 0.175)
-# is a chance flag: 30 unadjusted comparisons, so about one is expected under no change.
+# Time-band flags on the teammate data (two-proportion z > 3, H-11), checked against an
+# independent recomputation from the CSVs. The old rule (baseline treated as exact) also flagged
+# zone C evening_rush in normal.csv and morning_tail.csv (0.183 vs 0.125, z 3.50); with the
+# baseline's own error counted it is z 2.23, within chance. No planted problem is lost:
+# recovery C midday z 5.03, evening_rush z 5.80; morning_tail D morning_rush z 5.05.
 EXPECTED_BAND_FLAGS = {
-    "normal.csv": {"C": ["evening_rush"]},
+    "normal.csv": {},
     "recovery.csv": {"C": ["midday", "evening_rush"]},
-    "morning_tail.csv": {"C": ["evening_rush"], "D": ["morning_rush"]},
+    "morning_tail.csv": {"D": ["morning_rush"]},
 }
 
 
@@ -77,7 +79,8 @@ def test_band_flags(name):
 
 
 def test_morning_tail_zone_d_band_and_slowest():
-    """morning_tail.csv: D's morning-rush band is flagged (0.371 vs UCL 0.249) and D's five slowest
+    """morning_tail.csv: D's morning-rush band is flagged (98/264 = 0.371 vs baseline 50/280,
+    UCL 0.287, z 5.05) and D's five slowest
     monitoring incidents are the injected severe ones (all in morning rush, 35-42 min)."""
     path = DATA_DIR / "morning_tail.csv"
     if not path.exists():
@@ -86,7 +89,9 @@ def test_morning_tail_zone_d_band_and_slowest():
     band = next(b for b in qc.late_rate_by_band(df, "D") if b["band"] == "morning_rush")
     assert band["status"] == "ok" and band["flag"] is True
     assert band["p_band"] == pytest.approx(0.371, abs=0.0005)
-    assert band["ucl"] == pytest.approx(0.249, abs=0.0005)
+    assert (band["baseline_late"], band["baseline_n"], band["monitoring_late"], band["n_band"]) == (50, 280, 98, 264)
+    assert band["ucl"] == pytest.approx(0.2871, abs=0.00005)
+    assert band["z"] == pytest.approx(5.046, abs=0.0005)
     slow = qc.slowest_incidents(df, zone_id="D")
     assert [round(s["response_min"], 1) for s in slow] == [41.6, 40.7, 40.6, 37.0, 35.6]
     assert all(6 <= int(s["unit_notified_at"][11:13]) < 10 for s in slow)
