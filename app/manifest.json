@@ -1,38 +1,38 @@
 {
   "version": 1,
-  "locale": "C.UTF-8",
+  "locale": "en_US.UTF-8",
   "metadata": {
     "appmode": "python-fastapi",
     "entrypoint": "api:app"
   },
   "python": {
-    "version": "3.13.7",
+    "version": "3.12.15",
     "package_manager": {
       "name": "pip",
-      "version": "25.2",
+      "version": "26.2.1",
       "package_file": "requirements.txt"
     }
   },
   "environment": {
     "python": {
-      "requires": "~=3.13.0"
+      "requires": "~=3.12.0"
     }
   },
   "files": {
     "requirements.txt": {
-      "checksum": "8119723dab201c1e17a2af6fe521b778"
+      "checksum": "203e2f10b939e8b793313382b7a08f58"
     },
     ".python-version": {
-      "checksum": "789ee353b44223a8ed8031aa190631dd"
+      "checksum": "61939823fbcc7e8de3b61ab105331baf"
     },
     "api.py": {
-      "checksum": "73c942ee7d10dd267fceacf404c20c64"
+      "checksum": "a54d5633a7ec003d532e36d6904d14a1"
     },
-    "frontend/dist/assets/index-Dvn_d7XV.js": {
-      "checksum": "61fbeeef53f2ca044368fe5d166fd56d"
+    "frontend/dist/assets/index-B2XWjnly.js": {
+      "checksum": "73b16085c04448ad2deb641292c138bc"
     },
-    "frontend/dist/assets/index-mp0OwSVQ.css": {
-      "checksum": "b0ab329d9fc424d7f0a708703633aa09"
+    "frontend/dist/assets/index-GDbJQORH.css": {
+      "checksum": "c207845b4ba6684255c79b666e12b272"
     },
     "frontend/dist/assets/morning_tail-l4Mo1DuS.js": {
       "checksum": "14b6614c0941ed38d486c28ddf1b8631"
@@ -43,8 +43,14 @@
     "frontend/dist/assets/recovery-BK0w5ybQ.js": {
       "checksum": "a448881ffa65bcbff1f57a7c8ac54eb7"
     },
+    "frontend/dist/guide.html": {
+      "checksum": "6e2e135021aeb591f0fdbc2af64a058e"
+    },
+    "frontend/dist/home.html": {
+      "checksum": "915cc52dffc3f2ad78af49cbd8f02309"
+    },
     "frontend/dist/index.html": {
-      "checksum": "0e586ca0a60ba7d44bc2a7d3a5f10557"
+      "checksum": "5397251299a3d7c76d0caa7c76d298b2"
     },
     "qc.py": {
       "checksum": "22a450c4bdd99531c8017c6f1fd10f2b"

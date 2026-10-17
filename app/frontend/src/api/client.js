@@ -1,9 +1,9 @@
 import fixtureSource from '../mocks/source.json'
 
 export const SCENARIOS = [
-  { id: 'normal', label: 'Normal operations', description: 'All zones · reference conditions' },
-  { id: 'recovery', label: 'Recovery', description: 'All zones · C worsens, then recovers' },
-  { id: 'morning_tail', label: 'Morning tail', description: 'All zones · D morning delays' },
+  { id: 'normal', label: 'Dataset 1', description: 'Normal month · no new problems' },
+  { id: 'recovery', label: 'Dataset 2', description: 'C travel slowdown Oct 1–6 · then fixed' },
+  { id: 'morning_tail', label: 'Dataset 3', description: 'D 06:00–10:00 · a few 35–42 min waits' },
 ]
 
 const ZONES = ['A', 'B', 'C', 'D', 'E', 'F']

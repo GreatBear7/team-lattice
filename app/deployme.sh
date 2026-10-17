@@ -23,6 +23,7 @@ fi
   ${CONNECT_SERVER:+--server "$CONNECT_SERVER"} \
   ${CONNECT_API_KEY:+--api-key "$CONNECT_API_KEY"} \
   --entrypoint api:app \
+  --exclude 'frontend/.vite/**/*' \
   --exclude 'frontend/node_modules/**/*' \
   --exclude 'frontend/src/**/*' \
   --exclude 'frontend/public/**/*' \

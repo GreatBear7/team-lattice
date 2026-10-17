@@ -20,6 +20,7 @@ PY="../.venv/bin/python"
 "$PY" -m rsconnect.main write-manifest fastapi . \
   --entrypoint api:app \
   --overwrite \
+  --exclude 'frontend/.vite/**/*' \
   --exclude 'frontend/node_modules/**/*' \
   --exclude 'frontend/src/**/*' \
   --exclude 'frontend/public/**/*' \
