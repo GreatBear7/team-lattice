@@ -244,3 +244,22 @@ tasks:
       recovery: C midday and evening rush; morning_tail: D morning rush);
       an independent stats review passes.
     result: "Band flag is now a pooled two-proportion z > 3 (integer-exact; ucl/lcl are the z = +-3 lines); false-alarm months 57% -> 3.7% in 1,000 sims, planted problems still flagged; 110 tests pass; stats-reviewer PASS"
+
+  - id: H-12
+    title: Home page and user guide (FAQ, glossary, statistics with formulas)
+    points: "Supports 10 - Tool Design (clear demonstration) and judges' understanding of every number"
+    status: in_progress
+    owner: "Saptarshi"
+    started_at: "2026-10-17T11:40:00-04:00"
+    owns: ["app/frontend/public/", "app/api.py", "tests/test_api.py", "app/frontend/src/App.jsx",
+           "app/frontend/src/styles.css", "app/frontend/dist/", "app/manifest.json", "README.md", "app/README.md"]
+    notes: >
+      Static home.html and guide.html (Vite copies public/ into dist/). / serves the home page,
+      /app the dashboard, /guide the guide; /docs stays the API reference. Every formula and
+      worked number on the guide comes from app/qc.py and is re-computed before check-in.
+      Dashboard header gets Home and Guide links only; no other change to Claire's components.
+    definition_of_done: >
+      app/verifyme.sh passes; locally /, /app, /guide and /docs answer 200 and the dashboard still
+      loads data at /app; every worked example on the guide matches qc.py output; after deploy the
+      same four URLs answer 200 logged out.
+    result: ""

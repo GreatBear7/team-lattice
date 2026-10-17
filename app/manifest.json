@@ -26,13 +26,13 @@
       "checksum": "61939823fbcc7e8de3b61ab105331baf"
     },
     "api.py": {
-      "checksum": "73c942ee7d10dd267fceacf404c20c64"
+      "checksum": "450a0172815b777151d64f10ce155e05"
     },
-    "frontend/dist/assets/index-Dvn_d7XV.js": {
-      "checksum": "61fbeeef53f2ca044368fe5d166fd56d"
+    "frontend/dist/assets/index-BNxpTKvw.css": {
+      "checksum": "7033b92e5b582c434f62806cad0b37d8"
     },
-    "frontend/dist/assets/index-mp0OwSVQ.css": {
-      "checksum": "b0ab329d9fc424d7f0a708703633aa09"
+    "frontend/dist/assets/index-DDUzkieN.js": {
+      "checksum": "cffddb1f4c4cec466f084bd5195054d1"
     },
     "frontend/dist/assets/morning_tail-l4Mo1DuS.js": {
       "checksum": "14b6614c0941ed38d486c28ddf1b8631"
@@ -43,8 +43,14 @@
     "frontend/dist/assets/recovery-BK0w5ybQ.js": {
       "checksum": "a448881ffa65bcbff1f57a7c8ac54eb7"
     },
+    "frontend/dist/guide.html": {
+      "checksum": "c39a104ae33a9d196f5b24a09535f32c"
+    },
+    "frontend/dist/home.html": {
+      "checksum": "27b6cf90f85ce6ba62f2681d5ce08942"
+    },
     "frontend/dist/index.html": {
-      "checksum": "0e586ca0a60ba7d44bc2a7d3a5f10557"
+      "checksum": "0fb4d429753e09c887aafebda474372b"
     },
     "qc.py": {
       "checksum": "22a450c4bdd99531c8017c6f1fd10f2b"

@@ -340,6 +340,9 @@ td small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px
 }
 
 /* The investigation owns the large instrument; districts and severe cases stay in view. */
+.page-links { display: flex; gap: 4px; flex-shrink: 0; }
+.page-links a { padding: 6px 8px; border-radius: 5px; color: var(--muted); font-size: 12px; text-decoration: none; }
+.page-links a:hover { color: #096e69; background: #eaf5f3; }
 .source-button { display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0; padding: 6px 8px; border: 1px solid #c9d3d9; border-radius: 5px; color: var(--muted); font-size: 12px; }
 .source-button:hover, .source-button[aria-expanded=true] { color: #096e69; background: #eaf5f3; border-color: #a2cec7; }
 .zone-overview .panel-heading { min-height: 47px; }
