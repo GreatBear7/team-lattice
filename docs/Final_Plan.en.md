@@ -209,10 +209,21 @@ For each zone, priority, and band, **pool counts across days**, separately for b
 p0_band = baseline_late_band / baseline_n_band  # weighted and frozen
 n_band = total valid monitoring incidents in this zone and band
 p_band = monitoring_late_band / n_band
-UCL_band = min(1, p0_band + 3 * sqrt(p0_band * (1 - p0_band) / n_band))
-LCL_band = max(0, p0_band - 3 * sqrt(p0_band * (1 - p0_band) / n_band))
-flag_band = p_band > UCL_band
+pp = (baseline_late_band + monitoring_late_band) / (baseline_n_band + n_band)   # pooled rate
+z_band = (p_band - p0_band) / sqrt(pp * (1 - pp) * (1 / n_band + 1 / baseline_n_band))
+flag_band = z_band > 3        # one-sided, strict; decided in integer arithmetic
+UCL_band, LCL_band = the p_band values at which z_band = +3 and -3 (clipped to [0, 1]),
+                     so flag_band is exactly p_band > UCL_band
 ```
+
+**H-11 revision (2026-10-16):** the band flag is a pooled two-proportion z test. The first
+version used `p0_band + 3*sqrt(p0_band*(1-p0_band)/n_band)`, which treats the band's 14-day
+baseline rate as exact. That is safe for the daily chart (about 100 calls a day against about
+1,400 baseline calls), but a band's baseline and monitoring counts are about the same size, so
+the baseline's own sampling error is as large as the monitoring error. In 1,000 simulated normal
+months the old rule raised at least one false band alarm in 57% of months; the two-proportion
+test does so in 3.7%, close to the about 4% expected from 30 comparisons at 3 sigma. Every
+planted problem in the three datasets is still flagged.
 
 Return insufficient evidence for an empty baseline, monitoring n=0, p0_band equal to 0 or 1, `n_band*p0_band < 5`, or `n_band*(1-p0_band) < 5`. Do not divide by zero or label such groups normal; preserve descriptive rates where defined. These are approximate historical-proportion comparison limits, not a formal multiplicity-adjusted inference.
 
@@ -220,7 +231,7 @@ Band comparisons also require the zone/priority to pass the 14-day baseline chec
 
 Show paired baseline/monitoring late-rate bars for five bands, with UCL markers, sample sizes, comparison dates, and evidence status; color above-limit bands red. Return results in a `time_of_day` field within the existing `GET /zones/{id}/analysis`, without new inputs or endpoints. Each item includes at least band, baseline_n, p0_band, n_band, p_band, ucl, lcl, flag, and status.
 
-State in the UI and README: **six zones × five bands create 30 exploratory comparisons; chance violations can occur, no multiple-comparison correction is applied, and red bars guide investigation rather than prove causes.** A band's own baseline accounts for normal rush-hour patterns. Recovery-period pooling still includes earlier deteriorated days, so recovery in the last few days need not remove a full-period red bar; inspect the daily primary chart for recent recovery.
+State in the UI and README: **six zones × five bands create 30 exploratory comparisons; chance violations can occur (about a 4% chance of at least one in a month with no change, H-11), no multiple-comparison correction is applied, and red bars guide investigation rather than prove causes.** A band's own baseline accounts for normal rush-hour patterns. Recovery-period pooling still includes earlier deteriorated days, so recovery in the last few days need not remove a full-period red bar; inspect the daily primary chart for recent recovery.
 
 A risk-adjusted daily p chart is a statistical extension to evaluate only after the 02:00 gate: expected daily late count `E=sum(p0_band_of_each_call)`, with count limits `clip(E ± 3*sqrt(sum(p*(1-p))), 0, n_day)`. It addresses changing time-band composition, needs separate tests and explanation, and is outside six-item core acceptance. It cannot block deployment.
 
@@ -230,8 +241,8 @@ A risk-adjusted daily p chart is a statistical extension to evaluate only after 
 |---|---|---|
 | Known proportion | `p0=0.10, n=100, d=20` | CL≈0.10, UCL≈0.19, LCL≈0.01, p≈0.20, deterioration flag true; compare numeric values with tolerance |
 | Limit boundary | Same setup, but `d=19` | p=0.19; no flag under the strict greater-than rule; assert the boolean separately |
-| Known band answer | `p0_band=0.20, n_band=400, d_band=108` | sigma≈0.02, UCL≈0.26, LCL≈0.14, p_band≈0.27, flag true; compare numeric values with tolerance |
-| Band limit boundary | Same setup, but `d_band=104` | p_band=0.26; no flag under strict greater-than |
+| Known band answer (H-11) | baseline `120/600`, monitoring `180/600` | pooled 0.25, SE=0.025, z=4.0, UCL≈0.2736, flag true; compare numeric values with tolerance |
+| Band limit boundary (H-11) | baseline `555/2400`, monitoring `645/2400` | z=3 exactly, UCL=645/2400; no flag under strict greater-than; `646` flags |
 | Band assignment and empty groups | 06:00, 10:00, 16:00, 20:00, next-day 00:00, empty baseline/monitoring, p0_band=0 or 1 | Correct half-open bands, insufficient evidence for empty groups, timezone conversion first; UTC 10:00 maps to local 06:00 on these dates |
 | Hourly weights and normal rush | Weight sum 25.6; 1.3 factor present from baseline onward | Reproduce with the seed and shared baseline/draws; verify actual band n and do not treat normal rush as an injected failure |
 | Tail fixture | `[5,5,5,5,5,5,5,5,20,20]`, T=12 | Mean≈8, P90≈20, late rate≈0.20 |
@@ -253,10 +264,10 @@ assert result["lcl"] == pytest.approx(0.01, rel=1e-12, abs=1e-12)
 assert result["p"] == pytest.approx(0.20, rel=1e-12, abs=1e-12)
 assert result["flag"] is True  # d=20
 assert boundary_result["flag"] is False  # d=19
-assert band_result["ucl"] == pytest.approx(0.26, rel=1e-12, abs=1e-12)
-assert band_result["lcl"] == pytest.approx(0.14, rel=1e-12, abs=1e-12)
-assert band_result["flag"] is True  # d_band=108
-assert band_boundary_result["flag"] is False  # d_band=104
+assert band_result["z"] == pytest.approx(4.0, rel=1e-12, abs=1e-12)  # 120/600 vs 180/600 (H-11)
+assert band_result["ucl"] == pytest.approx(0.2736345402717933, rel=1e-12, abs=1e-12)
+assert band_result["flag"] is True
+assert band_boundary_result["flag"] is False  # 555/2400 vs 645/2400: z = 3 exactly
 ```
 
 Accept the statistical layer only after known-answer, boundary, degenerate-input, and planted-signal tests pass. If optional replay is implemented, add tests for unsettled-cohort exclusion and hidden future arrivals; the core does not depend on replay tests.
@@ -340,7 +351,7 @@ Current proposal: [time-of-day analysis](time-of-day-proposal.md), commit `b1b86
 | Time-of-day proposal | Resolution |
 |---|---|
 | Normal hourly volume and rush | Publish fixed hourly weights and a 1.3 rush factor in the baseline too; retain all-day injection by default and validate any optional evening-only variant |
-| New statistic and verification | Add pooled `late_rate_by_band`; known UCL≈0.26/LCL≈0.14; test empty groups, timezone conversion, boundaries and insufficient evidence |
+| New statistic and verification | Add pooled `late_rate_by_band`; pooled two-proportion z > 3 (H-11), known answer z=4.0, boundary z=3; test empty groups, timezone conversion, boundaries and insufficient evidence |
 | Zone detail | Add five-band baseline/monitoring bars with UCL through the existing detail endpoint, without new inputs or endpoints |
 | Risks and scope | Explain 30 unadjusted exploratory comparisons; retain the daily primary chart, six core items, four endpoints, dataset size and schedule; gate risk adjustment as an extension |
 

@@ -457,8 +457,9 @@
         "n_band": 164,
         "monitoring_late": 9,
         "p_band": 0.0549,
-        "ucl": 0.072,
+        "ucl": 0.1117,
         "lcl": 0.0,
+        "z": 1.106,
         "flag": false,
         "status": "ok"
       },
@@ -472,8 +473,9 @@
         "n_band": 273,
         "monitoring_late": 88,
         "p_band": 0.3223,
-        "ucl": 0.2144,
-        "lcl": 0.0849,
+        "ucl": 0.2524,
+        "lcl": 0.0695,
+        "z": 4.758,
         "flag": true,
         "status": "ok"
       },
@@ -487,8 +489,9 @@
         "n_band": 394,
         "monitoring_late": 117,
         "p_band": 0.297,
-        "ucl": 0.1414,
-        "lcl": 0.052,
+        "ucl": 0.1693,
+        "lcl": 0.0423,
+        "z": 7.063,
         "flag": true,
         "status": "ok"
       },
@@ -502,8 +505,9 @@
         "n_band": 394,
         "monitoring_late": 143,
         "p_band": 0.3629,
-        "ucl": 0.2196,
-        "lcl": 0.1078,
+        "ucl": 0.2505,
+        "lcl": 0.0922,
+        "z": 6.335,
         "flag": true,
         "status": "ok"
       },
@@ -519,6 +523,7 @@
         "p_band": 0.2343,
         "ucl": null,
         "lcl": null,
+        "z": null,
         "flag": null,
         "status": "insufficient_evidence"
       }

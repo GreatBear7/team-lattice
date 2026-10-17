@@ -142,7 +142,8 @@ Example: [`zone_C_analysis.mock.json`](zone_C_analysis.mock.json). Top level add
   `monitoring_p90_min`. Compare the two P90s: a slower tail shows there even when medians barely move.
 - `time_of_day`: `exploratory_note` and `bands[]`, each `band`, `label`, `interval_local`,
   `baseline_n`, `baseline_late`, `p0_band`, `n_band`, `monitoring_late`, `p_band`, `ucl`, `lcl`,
-  `flag`, `status`. Bands are half-open, by local `unit_notified_at`. Accepts `window` = `14` or
+  `z`, `flag`, `status`. Since H-11, `flag` is a pooled two-proportion z test (`z` > 3, number or
+  null), and `ucl`/`lcl` are the rates where z = +3/-3, so `flag` is exactly `p_band > ucl`. Bands are half-open, by local `unit_notified_at`. Accepts `window` = `14` or
   `7` like `/zones/summary` (H-10).
 - `slowest_incidents[]`: up to five, this zone only, ordered by `response_min` descending then
   `incident_id` ascending; each `incident_id`, `zone_id`, `unit_notified_at`, `on_scene_at`,

@@ -6,8 +6,9 @@ Method (docs/Final_Plan.en.md sections 3, 5.1-5.3):
       (weighted), limits p0 +/- 3 * sqrt(p0 * (1 - p0) / n_i) clipped to [0, 1].
       Deterioration flag: p_i > UCL_i (strict), monitoring days only.
     - above_service_target: late_rate > q (q = 0.10). It is independent of the flag.
-    - Time of day (5.4): pooled band comparison with the same limit rule (late_rate_by_band), and
-      descriptive hourly cells for the heatmap / 24-hour clock (late_rate_change_by_hour).
+    - Time of day (5.4): pooled band comparison, flag = two-proportion z > 3 against the band's
+      baseline (late_rate_by_band, H-11), and descriptive hourly cells for the heatmap / 24-hour
+      clock (late_rate_change_by_hour).
 
 Conventions:
     - Times are minutes, rates are proportions 0-1.
@@ -498,6 +499,47 @@ def band_of_hour(hour):
     raise ValueError(f"hour out of range: {hour}")
 
 
+def two_proportion_test(baseline_n, baseline_late, n, late, z=3):
+    """Pooled two-proportion z test of monitoring p = late/n against baseline p0 = baseline_late/baseline_n.
+
+    Both rates are estimated from samples of similar size, so the baseline's own sampling error
+    counts:  z = (p - p0) / sqrt(pp * (1 - pp) * (1/n + 1/baseline_n)),  pp = pooled late rate.
+    flag = z > z_crit (strict, one-sided: only deterioration). It is decided in integers,
+        N * (late*baseline_n - baseline_late*n)^2 > z_crit^2 * L * (N - L) * n * baseline_n,
+    with N = baseline_n + n and L = baseline_late + late, so a result exactly on the limit is
+    never tipped by rounding.
+    ucl/lcl are the monitoring rates at which z = +z_crit and -z_crit for these counts (roots
+    of a quadratic in p), clipped to [0, 1]: flag is True exactly when p > ucl, so a chart can
+    draw ucl as the band's limit line. Callers check the evidence first (see _compare_band).
+    """
+    if baseline_n <= 0 or n <= 0:
+        raise ValueError("both sample sizes must be positive")
+    if not (0 <= baseline_late <= baseline_n and 0 <= late <= n):
+        raise ValueError("late counts must be between 0 and their sample size")
+    N, L = baseline_n + n, baseline_late + late
+    if L == 0 or L == N:
+        raise ValueError("pooled rate is 0 or 1: the test is undefined")
+    p0, p = baseline_late / baseline_n, late / n
+    pp = L / N
+    z_value = (p - p0) / math.sqrt(pp * (1 - pp) * (1 / n + 1 / baseline_n))
+    diff = late * baseline_n - baseline_late * n
+    flag = diff > 0 and N * diff * diff > z * z * L * (N - L) * n * baseline_n
+    # z(p) = +-z_crit  <=>  (p - p0)^2 = c * (a + b p)(1 - a - b p), with pp = a + b p
+    a, b, c = baseline_late / N, n / N, z * z * (1 / n + 1 / baseline_n)
+    qa = 1 + c * b * b
+    qb = -2 * p0 - c * b * (1 - 2 * a)
+    qc_ = p0 * p0 - c * a * (1 - a)
+    root = math.sqrt(qb * qb - 4 * qa * qc_)
+    ucl = min(1.0, (-qb + root) / (2 * qa))
+    # The integer rule decides; keep the drawn line on the same side of p even when p sits exactly
+    # on the boundary and the root lands one rounding step away (e.g. 555/2400 vs 645/2400).
+    if flag and not p > ucl:
+        ucl = math.nextafter(p, 0.0)
+    elif not flag and p > ucl:
+        ucl = p
+    return {"z": z_value, "flag": flag, "ucl": ucl, "lcl": max(0.0, (-qb - root) / (2 * qa))}
+
+
 def _compare_band(key, label, start, end, baseline_n, baseline_late, n, late, zone_baseline_ok):
     """One time_of_day.bands[] item: pooled monitoring rate vs the band's frozen baseline."""
     p0 = baseline_late / baseline_n if baseline_n else None
@@ -505,7 +547,7 @@ def _compare_band(key, label, start, end, baseline_n, baseline_late, n, late, zo
     item = {"band": key, "label": label, "interval_local": f"{start:02d}:00-{end:02d}:00",
             "baseline_n": baseline_n, "baseline_late": baseline_late, "p0_band": p0,
             "n_band": n, "monitoring_late": late, "p_band": p,
-            "ucl": None, "lcl": None, "flag": None, "status": "insufficient_evidence"}
+            "ucl": None, "lcl": None, "z": None, "flag": None, "status": "insufficient_evidence"}
     if not zone_baseline_ok:
         item["status"] = "baseline_insufficient"
         return item
@@ -517,8 +559,8 @@ def _compare_band(key, label, start, end, baseline_n, baseline_late, n, late, zo
               and _enough_expected(n, p0))
     if not enough:
         return item
-    limits = p_chart_limits(p0, n)
-    item.update(ucl=limits["ucl"], lcl=limits["lcl"], flag=p > limits["ucl"], status="ok")
+    test = two_proportion_test(baseline_n, baseline_late, n, late)
+    item.update(ucl=test["ucl"], lcl=test["lcl"], z=test["z"], flag=test["flag"], status="ok")
     return item
 
 
@@ -541,8 +583,10 @@ def late_rate_by_band(df, zone_id, T=DEFAULT_T, baseline_end=DEFAULT_BASELINE_EN
                       monitoring_start=None):
     """Five time bands for one zone: pooled monitoring late rate vs that band's baseline p0.
 
-    Same limit formula and strict p > UCL rule as the daily chart, with n = the band's pooled
-    monitoring count. Exploratory: 6 zones x 5 bands = 30 unadjusted comparisons.
+    Flag = pooled two-proportion z > 3 (two_proportion_test): unlike a day against a 14-day
+    baseline, a band's monitoring and baseline counts are about the same size, so the baseline's
+    own sampling error cannot be ignored. Exploratory: 6 zones x 5 bands = 30 unadjusted
+    comparisons, about 4% chance of at least one false flag in a month with no change.
     The zone must first pass the 14-day baseline check (else every band is baseline_insufficient);
     each band then needs >= 5 late and >= 5 non-late baseline incidents and n*p0, n*(1-p0) >= 5.
     monitoring_start (ISO local date) limits monitoring to that date onward, e.g. the last 7 days.
