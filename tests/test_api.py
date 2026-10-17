@@ -692,7 +692,7 @@ def test_upload_limit(monkeypatch, fresh_state):
     assert upload(b"a" * 11).status_code == 413
 
 
-@pytest.mark.parametrize("route,expected", [("/", "Choose a starting point"), ("/app", '<div id="root">'), ("/guide", "Start in three steps")])
+@pytest.mark.parametrize("route,expected", [("/", "Choose a starting point"), ("/app", '<div id="root">'), ("/guide", "Search documentation")])
 def test_integrated_pages(route, expected):
     r = client.get(route)
     assert r.status_code == 200
