@@ -1,4 +1,4 @@
-# Tested Python 3.13 runtime. Statistics remain in qc.py.
+# Tested Python 3.12 runtime (the course Connect server offers 3.12.4). Statistics remain in qc.py.
 fastapi==0.116.1
 uvicorn==0.35.0
 python-multipart==0.0.20
