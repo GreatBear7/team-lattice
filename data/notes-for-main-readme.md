@@ -16,7 +16,7 @@ in the last 14 days. Full codebook: [`data/README.md`](data/README.md).
 |---|---|---|
 | `normal.csv` | Nothing goes wrong | No zone is flagged on any day |
 | `recovery.csv` | Zone C: 25% of calls take 6–12 extra minutes to drive, Oct 1–6; fixed from Oct 7 | Zone C flagged on exactly Oct 1–6, then back in control |
-| `morning_tail.csv` | Zone D: 25% of morning-rush calls (06:00–10:00) take 15–25 extra minutes, Oct 1–11 | Daily chart stays green; zone D's morning band is flagged (37.1% late vs a 24.9% limit) and its slowest calls take 36–42 minutes |
+| `morning_tail.csv` | Zone D: 25% of morning-rush calls (06:00–10:00) take 15–25 extra minutes, Oct 1–11 | Daily chart stays green; zone D's morning band is flagged (37.1% late vs a 28.7% limit) and its slowest calls take 36–42 minutes |
 
 In all three, the citywide average response time barely moves (9.11 → 9.20 min). That is the
 point of the prompt: a monthly average cannot see either problem.

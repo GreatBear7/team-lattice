@@ -4,7 +4,9 @@ from datetime import date, datetime, timedelta, timezone
 import pandas as pd
 import pytest
 
-from app.qc import BANDS, band_of_hour, late_rate_by_band, p_chart_limits
+import math
+
+from app.qc import BANDS, band_of_hour, late_rate_by_band, two_proportion_test
 
 TOL = dict(rel=1e-12, abs=1e-12)
 ORDER = [key for key, _, _, _ in BANDS]
@@ -47,23 +49,79 @@ def midday(df):
     return band(late_rate_by_band(df, "C"), "midday")
 
 
-# ---- known answer (Final_Plan section 6) ------------------------------------
-def test_band_limits_known_answer():
-    lim = p_chart_limits(0.20, 400)
-    assert lim["ucl"] == pytest.approx(0.26, **TOL)
-    assert lim["lcl"] == pytest.approx(0.14, **TOL)
+# ---- known answer (two-proportion z test, H-11) ------------------------------
+# By hand: 120/600 vs 180/600 -> pooled 300/1200 = 0.25,
+# SE = sqrt(0.25 * 0.75 * (1/600 + 1/600)) = sqrt(0.000625) = 0.025, z = (0.30 - 0.20) / 0.025 = 4.
+def test_two_proportion_known_answer():
+    t = two_proportion_test(600, 120, 600, 180)
+    assert t["z"] == pytest.approx(4.0, **TOL)
+    assert t["flag"] is True
+    assert t["ucl"] == pytest.approx(0.2736345402717933, **TOL)
+    assert t["lcl"] == pytest.approx(0.1352984622095963, **TOL)
 
 
-def test_known_answer_flag_and_boundary():
-    r = midday(build(80, 400, 108, 400))
+def test_two_proportion_exact_boundary_is_not_a_flag():
+    # 555/2400 vs 645/2400 -> pooled 0.25, SE = 0.0125, z = 0.0375 / 0.0125 = 3 exactly.
+    # In floating point z is 2.9999999999999982; the integer rule decides, and z = 3 is not > 3.
+    t = two_proportion_test(2400, 555, 2400, 645)
+    assert t["z"] == pytest.approx(3.0, **TOL)
+    assert t["flag"] is False
+    assert t["ucl"] == pytest.approx(645 / 2400, **TOL)  # the limit line sits on the boundary rate
+    assert not 645 / 2400 > t["ucl"]  # the drawn line agrees with the flag exactly (review finding)
+    assert two_proportion_test(2400, 555, 2400, 646)["flag"] is True  # one more late call
+
+
+def test_old_known_answer_no_longer_flags():
+    # Old rule: 108/400 vs a baseline 80/400 treated as exact -> UCL 0.26, flag. With the
+    # baseline's own error counted, z = 2.33: a 7-point rise on 400 calls each is within chance.
+    t = two_proportion_test(400, 80, 400, 108)
+    assert t["z"] == pytest.approx(2.33479303527988, rel=1e-12)
+    assert t["flag"] is False
+
+
+def test_known_answer_through_late_rate_by_band():
+    r = midday(build(120, 600, 180, 600))
     assert r["p0_band"] == pytest.approx(0.20, **TOL)
-    assert r["p_band"] == pytest.approx(0.27, **TOL)
-    assert r["ucl"] == pytest.approx(0.26, **TOL)
-    assert r["lcl"] == pytest.approx(0.14, **TOL)
+    assert r["p_band"] == pytest.approx(0.30, **TOL)
+    assert r["z"] == pytest.approx(4.0, **TOL)
+    assert r["ucl"] == pytest.approx(0.2736345402717933, **TOL)
     assert r["flag"] is True and r["status"] == "ok"
-    r = midday(build(80, 400, 104, 400))
-    assert r["p_band"] == pytest.approx(0.26, **TOL)
-    assert r["flag"] is False  # p == UCL is not a flag (strict >)
+    r = midday(build(555, 2400, 645, 2400))
+    assert r["flag"] is False and r["status"] == "ok"
+
+
+# ---- degenerate cases of the test itself ---------------------------------------
+def test_no_change_gives_z_zero_and_no_flag():
+    t = two_proportion_test(400, 80, 400, 80)
+    assert t["z"] == 0.0 and t["flag"] is False
+
+
+def test_improvement_is_never_a_flag():
+    t = two_proportion_test(400, 200, 400, 20)  # far better than baseline: z very negative
+    assert t["z"] < -3 and t["flag"] is False
+
+
+@pytest.mark.parametrize("args", [(0, 0, 100, 10), (100, 10, 0, 0), (100, 0, 100, 0),
+                                  (100, 100, 100, 100), (100, 101, 100, 10), (100, 10, 100, -1)])
+def test_undefined_inputs_raise(args):
+    with pytest.raises(ValueError):
+        two_proportion_test(*args)
+
+
+def test_flag_is_exactly_p_above_ucl_and_ucl_is_the_z3_point():
+    for nb, xb, nm in [(376, 47, 399), (280, 50, 264), (403, 39, 400), (164, 20, 175), (50, 10, 20)]:
+        ucl = two_proportion_test(nb, xb, nm, 0)["ucl"]
+        for xm in range(nm + 1):
+            t = two_proportion_test(nb, xb, nm, xm)
+            assert t["ucl"] == pytest.approx(ucl, **TOL)  # the line does not depend on xm
+            assert t["flag"] == (xm / nm > t["ucl"])  # exact, no tolerance
+            pp = (xb + xm) / (nb + nm)
+            assert t["z"] == pytest.approx((xm / nm - xb / nb)
+                                           / math.sqrt(pp * (1 - pp) * (1 / nm + 1 / nb)), rel=1e-12)
+        if ucl < 1:  # plugging the line back in gives z = 3
+            L = xb + ucl * nm
+            pp = L / (nb + nm)
+            assert (ucl - xb / nb) / math.sqrt(pp * (1 - pp) * (1 / nm + 1 / nb)) == pytest.approx(3.0)
 
 
 # ---- band assignment ---------------------------------------------------------
@@ -106,7 +164,7 @@ def test_five_bands_in_order_with_labels():
 # ---- insufficient evidence and degenerate cases ------------------------------
 def assert_insufficient(r):
     assert r["status"] == "insufficient_evidence"
-    assert r["ucl"] is None and r["lcl"] is None and r["flag"] is None
+    assert r["ucl"] is None and r["lcl"] is None and r["z"] is None and r["flag"] is None
 
 
 def test_empty_monitoring_band():

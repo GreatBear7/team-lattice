@@ -209,10 +209,14 @@ MVP 只启用一条恶化规则：**p_i > UCL_i**。等于界限不触发该规�
 p0_band = baseline_late_band / baseline_n_band  # weighted and frozen
 n_band = total valid monitoring incidents in this zone and band
 p_band = monitoring_late_band / n_band
-UCL_band = min(1, p0_band + 3 * sqrt(p0_band * (1 - p0_band) / n_band))
-LCL_band = max(0, p0_band - 3 * sqrt(p0_band * (1 - p0_band) / n_band))
-flag_band = p_band > UCL_band
+pp = (baseline_late_band + monitoring_late_band) / (baseline_n_band + n_band)   # 合并比例
+z_band = (p_band - p0_band) / sqrt(pp * (1 - pp) * (1 / n_band + 1 / baseline_n_band))
+flag_band = z_band > 3        # 单侧、严格大于；用整数运算判定
+UCL_band, LCL_band = 使 z_band = +3 与 -3 的 p_band 值（截断到 [0, 1]），
+                     因此 flag_band 恰好等于 p_band > UCL_band
 ```
+
+**H-11 修订（2026-10-16）：** 时段告警改为合并两比例 z 检验。旧版用 `p0_band + 3*sqrt(p0_band*(1-p0_band)/n_band)`，把 14 天基准比例当作精确值。每日图可以这样做（每天约 100 次呼叫，对比约 1,400 次基准呼叫），但时段的基准与监测样本量相近，基准自身的抽样误差与监测误差一样大。1,000 个模拟的正常月份中，旧规则有 57% 的月份至少出现一次时段误报；两比例检验为 3.7%，接近 30 个 3-sigma 比较的预期约 4%。三个数据集中所有植入的问题仍被标记。
 
 基准无有效样本、监测 n=0、p0_band 为 0 或 1、`n_band*p0_band < 5` 或 `n_band*(1-p0_band) < 5` 时，返回“证据不足”，不除零、不标成正常，适用时保留描述性比例。界限为基于历史比例的近似比较界限，并非已进行多重校正的正式推断。
 
@@ -220,7 +224,7 @@ flag_band = p_band > UCL_band
 
 图表为五时段的基准/监测超时率并列柱，标出 UCL、样本量、比较日期及证据状态；越上界的时段用红色。返回数据放入现有 `GET /zones/{id}/analysis` 的 `time_of_day` 字段，无需新增接口或输入。每项至少返回 band、baseline_n、p0_band、n_band、p_band、ucl、lcl、flag、status。
 
-UI 和 README 说明：**6 区×5 时段共 30 个探索性比较，偶然越界可能发生，未做多重比较校正；红柱用于排查，不证明原因。** 同时段自身基准避免直接把正常高峰当成故障。恢复场景的汇总仍包含整个监测期内的故障日，因此“最后几天恢复”不保证整期时段红柱消失；近期恢复看每日主图。
+UI 和 README 说明：**6 区×5 时段共 30 个探索性比较，偶然越界可能发生（无变化的月份中至少出现一次的概率约 4%，H-11），未做多重比较校正；红柱用于排查，不证明原因。** 同时段自身基准避免直接把正常高峰当成故障。恢复场景的汇总仍包含整个监测期内的故障日，因此“最后几天恢复”不保证整期时段红柱消失；近期恢复看每日主图。
 
 风险调整的每日 p 图仅作通过 02:00 门槛后才可评估的统计扩展：每日预期超时数为 `E=sum(p0_band_of_each_call)`，计数界限为 `clip(E ± 3*sqrt(sum(p*(1-p))), 0, n_day)`。它处理时段构成变化，需另行测试和说明，不进入六项核心的验收，也不能阻塞部署。
 
@@ -230,8 +234,8 @@ UI 和 README 说明：**6 区×5 时段共 30 个探索性比较，偶然越界
 |---|---|---|
 | 已知比例 | `p0=0.10, n=100, d=20` | CL≈0.10，UCL≈0.19，LCL≈0.01，p≈0.20，触发恶化规则；数值断言使用容差 |
 | 界限边界 | 同上，但 `d=19` | p=0.19，不触发严格大于规则；布尔结果单独断言 |
-| 时段已知答案 | `p0_band=0.20, n_band=400, d_band=108` | sigma≈0.02，UCL≈0.26，LCL≈0.14，p_band≈0.27，告警为 true；数值用容差 |
-| 时段边界告警 | 同上但 `d_band=104` | p_band=0.26，不触发严格大于规则 |
+| 时段已知答案（H-11） | 基准 `120/600`，监测 `180/600` | 合并比例 0.25，SE=0.025，z=4.0，UCL≈0.2736，告警为 true；数值用容差 |
+| 时段边界告警（H-11） | 基准 `555/2400`，监测 `645/2400` | z 恰为 3，UCL=645/2400，不触发严格大于规则；`646` 触发 |
 | 时段归组与空组 | 06:00、10:00、16:00、20:00、次日 00:00，以及空基准/空监测/p0_band=0 或 1 | 半开区间归属正确；空组返回证据不足；先转纽约本地时间，UTC 10:00 在此日期归为本地 06:00 |
 | 小时权重与正常高峰 | 权重和 25.6，1.3 倍窗口从基准期起存在 | 固定种子可复现；三场景共用基准和原始抽样；检查实际时段 n，不能把正常高峰植入当作故障 |
 | 长尾例子 | `[5,5,5,5,5,5,5,5,20,20]`，T=12 | 均值≈8，P90≈20，超时率≈0.20 |
@@ -253,10 +257,10 @@ assert result["lcl"] == pytest.approx(0.01, rel=1e-12, abs=1e-12)
 assert result["p"] == pytest.approx(0.20, rel=1e-12, abs=1e-12)
 assert result["flag"] is True  # d=20
 assert boundary_result["flag"] is False  # d=19
-assert band_result["ucl"] == pytest.approx(0.26, rel=1e-12, abs=1e-12)
-assert band_result["lcl"] == pytest.approx(0.14, rel=1e-12, abs=1e-12)
-assert band_result["flag"] is True  # d_band=108
-assert band_boundary_result["flag"] is False  # d_band=104
+assert band_result["z"] == pytest.approx(4.0, rel=1e-12, abs=1e-12)  # 120/600 vs 180/600 (H-11)
+assert band_result["ucl"] == pytest.approx(0.2736345402717933, rel=1e-12, abs=1e-12)
+assert band_result["flag"] is True
+assert band_boundary_result["flag"] is False  # 555/2400 vs 645/2400: z = 3 exactly
 ```
 
 已知答案、边界、退化输入与植入信号全部通过后，统计部分才可验收。若实现可选回放，再补充“未完成批次不进入控制图、未来到场状态不可见”等测试；核心不依赖回放测试。
@@ -340,7 +344,7 @@ H-06 在首个核心端到端版本可用后立即开始，H-08 的仓库访问�
 | 时段提案 | 本版处理 |
 |---|---|
 | 正常小时量与高峰 | 固定公开小时权重、1.3 倍高峰系数，基准期也包含；默认保留全天植入，晚高峰集中植入为需验证的候选变体 |
-| 新统计与验证 | 加入 `late_rate_by_band`，跨天汇总；已知答案 UCL≈0.26/LCL≈0.14，另测空组、时区、边界及证据不足 |
+| 新统计与验证 | 加入 `late_rate_by_band`，跨天汇总；合并两比例 z > 3（H-11），已知答案 z=4.0，边界 z=3，另测空组、时区、边界及证据不足 |
 | 区域详情 | 增加五时段基准/监测并列柱和 UCL，通过现有详情接口返回，无新输入或接口 |
 | 风险和范围 | 说明 30 个未多重校正的探索比较；保留每日主图、六项核心、四接口、数据量及排期；风险调整图仅作门槛后的扩展 |
 

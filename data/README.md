@@ -156,18 +156,20 @@ and every zone a scenario does not touch, are byte-identical across the three fi
 | Zone's late rate, monitoring | C 14.2%, D 12.1% | **C 23.7%** | **D 15.9%** |
 | Longest response in the file | 27.9 min | 31.8 min | **41.6 min** |
 | Citywide average R | 9.11 min | 9.20 min | 9.19 min |
-| What catches it (with `app/qc.py`) | nothing: no zone has a flagged day | daily p chart: zone C on exactly Oct 1-6, then back in control | time-band view (zone D morning rush 37.1% late vs limit 24.9%) and the slowest-calls list (35.6-41.6 min); the daily p chart never flags D |
+| What catches it (with `app/qc.py`) | nothing: no zone has a flagged day | daily p chart: zone C on exactly Oct 1-6, then back in control | time-band view (zone D morning rush 37.1% late vs limit 28.7%) and the slowest-calls list (35.6-41.6 min); the daily p chart never flags D |
 
 The citywide average barely moves in any file (9.11 → 9.20 min). That is the prompt's point: a
 monthly average cannot see either problem.
 
 ## Limitations and known features
 
-- **One chance flag.** Zone C's evening-rush band is flagged in `normal.csv` and
-  `morning_tail.csv` (18.3% late vs a limit of 17.5%). It appears with no planted problem, so it
-  is chance: the tool makes
-  30 zone × band comparisons with no multiple-comparison correction, so about one chance flag is
-  expected. We kept it rather than changing the seed to hide it.
+- **A near miss, not a flag.** Zone C's evening-rush band is 18.3% late in `normal.csv` and
+  `morning_tail.csv` against 12.5% in its baseline, with no planted problem. The first version of
+  the band test flagged it because it treated the 14-day baseline rate as exact. Since H-11 the
+  band test also counts the baseline's own sampling error (two-proportion z = 2.23, below 3), so
+  no band is flagged in `normal.csv`. The tool still makes 30 zone × band comparisons with no
+  multiple-comparison correction, so a chance flag is possible in other data (about a 4% chance
+  per month with no change). We did not change the seed to hide it.
 - **Most zones sit above the 10% service target even in a normal month** (all except A). This
   follows from the agreed travel profiles; "above target" and "worse than its own normal" are
   separate labels for this reason.
