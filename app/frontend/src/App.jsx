@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { DistrictMap } from './DistrictMap.jsx'
 import { createDataClient, SCENARIOS } from './api/client.js'
 import { dateLabel, integer, minutes, percent, timeLabel, zoneType } from './format.js'
 import { DailyPChart, BandChart, StageChart, stageShift, dailyPointStatus } from './Charts.jsx'
@@ -287,6 +288,7 @@ export default function App() {
   }, [client, scenario, file, retry])
   const summary = bundle?.summary
   const analysis = bundle?.analyses[selectedZone]
+  const [sideTab, setSideTab] = useState('briefing')
   function selectZone(id) { setSelectedZone(id); setShowMethods(false) }
   function applyConfig(next) { setFile(null); setConfig(next) }
   const sourceProps = { config, onApply: applyConfig, onUpload: setFile, fileName: file?.name, busy: loading }
@@ -298,7 +300,10 @@ export default function App() {
       {error ? showMethods ? <section className="panel error-panel source-error"><div className="panel-heading"><h2>Data source & interpretation</h2><button className="text-button" onClick={() => setShowMethods(false)}>Back to error</button></div><SourcePanel {...sourceProps} /></section> : <LoadError error={error} onRetry={() => setRetry(retry + 1)} onSource={() => setShowMethods(true)} /> : !bundle ? <div className="loading-layout" role="status">Loading {config.mode === 'api' ? 'from the statistics service' : 'precomputed evidence'}…</div> : <>
         <ZoneOverview zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected={selectedZone} onSelect={selectZone} />
         <AnalysisPanel analysis={analysis} bundle={bundle} client={client} windowDays={windowDays} setWindowDays={setWindowDays} view={view} onViewChange={setView} showMethods={showMethods} onCloseMethods={() => setShowMethods(false)} selectedDate={selectedDate} onSelectDate={setSelectedDate} onSelectZone={selectZone} sourceProps={sourceProps} />
-        <ManagerInsight key={`${bundle.datasetId || summary.dataset_id}-${selectedZone}`} analysis={analysis} bundle={bundle} client={client} windowDays={windowDays} onViewChange={setView} />
+        <section className="panel outlier-panel side-tabs" aria-label="Briefing and district map">
+          <div className="side-tab-list" role="tablist" aria-label="Briefing or map">{[['briefing', 'Briefing'], ['map', 'Map']].map(([key, label]) => <button key={key} role="tab" aria-controls="side-tab-panel" aria-selected={sideTab === key} onClick={() => setSideTab(key)}>{label}</button>)}</div>
+          <div className="side-tab-body" role="tabpanel" id="side-tab-panel">{sideTab === 'map' ? <DistrictMap zones={summary.zones} bandsByZone={summary.time_of_day_all_zones} selected={selectedZone} onSelect={selectZone} /> : <ManagerInsight key={`${bundle.datasetId || summary.dataset_id}-${selectedZone}`} analysis={analysis} bundle={bundle} client={client} windowDays={windowDays} onViewChange={setView} />}</div>
+        </section>
       </>}
     </main>
     <footer className="statusbar"><span>{file ? `CSV: ${file.name}` : 'Synthetic, historical incidents'} · {config.mode === 'demo' ? 'precomputed preview' : 'backend statistics'} · not a live dispatch feed</span><span>Late = response &gt; {summary?.settings.T_min ?? 12} min · target ≤ {percent(summary?.settings.q ?? .1)} late · demo settings</span></footer>
