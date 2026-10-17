@@ -16,7 +16,8 @@ Open **http://127.0.0.1:8000/** for the home page; choose a dataset or enter the
 
 - [Application setup, inputs, endpoints, parameters, tests and deployment](app/README.md)
 - [Supervisor demo for all three datasets](demo/README.md)
-- [Synthetic data and nine-column codebook](data/README.md)
+- [Data codebook: every column, derived variable and zone](data/CODEBOOK.md)
+- [Synthetic datasets: files, generation, scenarios and limitations](data/README.md)
 - [API contract](docs/api-contract/README.md)
 - [Final plan](docs/Final_Plan.md)
 
