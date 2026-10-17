@@ -1,2 +1,8 @@
-pandas
-pytest
+# Runtime dependencies for the Posit Connect bundle, pinned to the repo .venv.
+# Test-only packages (pytest) are not listed: tests run from the repo venv
+# (`.venv/bin/python -m pytest tests/`), not on Connect.
+fastapi==0.115.0
+uvicorn==0.32.0
+python-multipart==0.0.12
+pandas==3.0.6
+numpy==2.5.4

@@ -1,0 +1,6 @@
+# Never bundle or commit these
+.env
+__pycache__/
+*.pyc
+rsconnect-python/
+frontend/node_modules/
