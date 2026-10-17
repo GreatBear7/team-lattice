@@ -251,6 +251,6 @@ tasks:
     status: done
     owner: "Claire / Codex integrating Saptarshi H12"
     owns: ["app/frontend/public/", "app/api.py", "tests/test_api.py", "app/frontend/", "app/manifest.json", "README.md", "app/README.md"]
-    notes: "User authorized restoring h12-home-guide, simplifying first-use content, and integrating all current UI into dev via PR. Preserve methods in collapsed sections; do not change statistics/runtime."
+    notes: "User also authorized replacing Guide with searchable Docs using latest README and supplied documentation reference. User authorized restoring h12-home-guide, simplifying first-use content, and integrating all current UI into dev via PR. Preserve methods in collapsed sections; do not change statistics/runtime."
     definition_of_done: "pytest tests -q; frontend tests/build; /, /app, /guide, /docs and API health return 200; homepage dataset links select intended data; desktop Home/Guide/Dashboard navigation works"
-    result: "224 pytest tests passed; 76 frontend tests passed; production build passed; browser verified home Dataset 2 -> /app?dataset=recovery, C six-day briefing, guide disclosures and Home return. Local integration accepted; publishing from dev remains a separate deployment step."
+    result: "Guide replaced with searchable Docs; Home/Dashboard navigation renamed; README/codebook/API links integrated. 76 frontend and 224 full Python tests pass, production build and manifest checks pass. Desktop search, empty state, clear, TOC and Docs/Dataset 2/Dashboard return verified; independent design review ship; no statistical changes."

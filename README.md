@@ -4,7 +4,7 @@
 
 A decision-support dashboard for an on-duty 911 dispatch supervisor. ResponseWatch turns completed-incident CSVs into district comparisons, daily control charts and time-of-day evidence, with a plain-language briefing that explains what changed and what to check next.
 
-**[Open the live app](https://connect.systems-apps.com/response-watch/)** · **[Quick guide](https://connect.systems-apps.com/response-watch/guide)** · **[Three-minute demo](demo/README.md)**
+**[Open the live app](https://connect.systems-apps.com/response-watch/)** · **[Docs](https://connect.systems-apps.com/response-watch/guide)** · **[Three-minute demo](demo/README.md)**
 
 Built by **team-lattice** for the Cornell SYSEN 5300 Six Sigma Hackathon — Health Systems: Emergency Response. The demonstration uses fictional historical incidents, not a live 911 feed. The public app requires no login; its first load may take a few seconds.
 
@@ -31,7 +31,7 @@ The dashboard provides three analysis tabs:
 | **Where & when** | Which districts and hours need attention? Switch between the hourly heatmap, 24-hour clock and five-band comparison. |
 | **Why** | Which response stage looks different? Compare call handling, turnout and travel using medians and 90th percentiles. These comparisons suggest investigation, not a proven cause. |
 
-The briefing follows the selected dataset, district and time-band window. It is generated from validated statistics and explicit interpretation rules; it does **not** call an external AI service. Home and Guide links remain available from the dashboard.
+The briefing follows the selected dataset, district and time-band window. It is generated from validated statistics and explicit interpretation rules; it does **not** call an external AI service. Home and Docs links remain available from the dashboard.
 
 ## Three reproducible datasets
 
@@ -63,7 +63,7 @@ The script creates a virtual environment, installs runtime dependencies, builds 
 |---|---|
 | Home | http://127.0.0.1:8000/ |
 | Dashboard | http://127.0.0.1:8000/app |
-| Quick guide | http://127.0.0.1:8000/guide |
+| Docs | http://127.0.0.1:8000/guide |
 | Interactive API documentation | http://127.0.0.1:8000/docs |
 
 If port 8000 is occupied:
@@ -143,4 +143,4 @@ Follow the [three-minute demo](demo/README.md) to reproduce the three scenario o
 | [CONTRACT.yaml](CONTRACT.yaml) | Team task ledger and acceptance criteria |
 | [Final plan · English](docs/Final_Plan.en.md) / [中文](docs/Final_Plan.md) | Agreed project plan |
 
-The deployed app runs on the course **Posit Connect** server. The [deployment workflow](.github/workflows/deploy-fastapi.yml) publishes eligible changes on `main` and checks service health. Production uses relative asset/API paths so Home, Guide and Dashboard work under the deployment URL prefix. Build and manifest instructions are in [app/README.md](app/README.md#deployment); credentials belong in repository secrets or an ignored local environment file.
+The deployed app runs on the course **Posit Connect** server. The [deployment workflow](.github/workflows/deploy-fastapi.yml) publishes eligible changes on `main` and checks service health. Production uses relative asset/API paths so Home, Docs and Dashboard work under the deployment URL prefix. Build and manifest instructions are in [app/README.md](app/README.md#deployment); credentials belong in repository secrets or an ignored local environment file.
