@@ -213,6 +213,7 @@ export function ManagerInsight({ analysis, bundle, client, windowDays, onViewCha
     <div className="insight-heading"><h2>Response briefing</h2><span>Zone {id}</span></div>
     {loading ? <p className="insight-loading" role="status">Updating the briefing…</p> : <div className="insight-content">
       <h3>{title}</h3>
+      <div className="briefing-metric"><strong>{message.value}</strong><span>{message.unit}</span></div>
       <div className="briefing-questions" role="group" aria-label="Briefing questions">{[['changed', 'What changed?'], ['check', 'What to check?'], ['limits', 'Limits']].map(([key, label]) => <button key={key} aria-pressed={question === key} onClick={() => setQuestion(key)}>{label}</button>)}</div>
       <p className="briefing-answer" aria-live="polite">{answer.text}</p>
       <button className="insight-action" onClick={() => onViewChange(answer.view)}>{answer.link}<span aria-hidden="true"> ↗</span></button>
