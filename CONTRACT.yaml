@@ -124,9 +124,9 @@ tasks:
   - id: H-06
     title: Deploy to the course Posit Connect server
     points: "protects the 25 working-tool points - judges must be able to open it"
-    status: todo
-    owner: ""
-    started_at: ""
+    status: done
+    owner: "Saptarshi"
+    started_at: "2026-10-17T10:50:00-04:00"
     owns: [".github/workflows/", ".github/scripts/", "app/manifest.json", "app/.python-version"]
     notes: >
       Load the connect-publish skill. Copy ONE workflow for your stack from
@@ -139,7 +139,7 @@ tasks:
     definition_of_done: >
       The workflow run is green, and the public URL answers HTTP 200 from a
       logged-out browser and returns the H-03 numbers for one test dataset.
-    result: "Deployment scripts, workflow and 13-file ASGI manifest prepared and checksums verified. User chose local-only for now; no credentials configured, no public URL or deployment claimed."
+    result: "Live at https://connect.systems-apps.com/response-watch/: Actions run 39043033693 green on Python 3.12.4 (3.13 not offered); logged out, /, /health, /api/health and /docs return 200; recovery zone C p0 0.1314, UCL 0.2328, LCL 0.0301, 6 flags match local qc.py."
 
   - id: H-07
     title: README and function documentation
