@@ -45,7 +45,7 @@ Each CSV has **16,800 incidents**: six districts × 28 days × 100 calls per dis
 
 In Dataset 3, D's full-monitoring morning late rate is approximately **37.1%**, compared with **17.9%** at baseline. This is the central demonstration of why a monthly or daily summary alone is insufficient.
 
-See the [data codebook](data/README.md) for generation assumptions and realized baseline rates. Scenario truth is used for testing and demonstration, not to produce application statistics.
+See the [data generation notes](data/README.md) for assumptions and realized baseline rates, and the [variable-by-variable codebook](data/CODEBOOK.md) for field definitions. Scenario truth is used for testing and demonstration, not to produce application statistics.
 
 ## Run locally
 

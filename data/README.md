@@ -9,6 +9,8 @@ All data is synthetic. There are no real patients, dispatchers, ambulances, addr
 data. The numbers are designed to look like field data; they are not empirical findings about
 real EMS systems.
 
+**Variable-by-variable codebook: [CODEBOOK.md](CODEBOOK.md).**
+
 ## Files
 
 | File | What it is |
