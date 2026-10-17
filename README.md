@@ -1,16 +1,18 @@
 # ResponseWatch
 
+**Live:** https://connect.systems-apps.com/response-watch/ (public, no login; first load takes a few seconds while the server wakes the app).
+
 A compact ambulance response quality dashboard for an on-duty 911 dispatch supervisor. Load synthetic scenarios or upload a completed-incident CSV; investigate **where, when and which response stage** needs attention using frozen-baseline daily p charts, time-band comparisons, hourly/clock views and severe individual delays.
 
 ## Run the complete application
 
-Requires Python 3.13 and Node.js 20+ / npm. From this folder:
+Requires Python 3.12 (the version the course Connect server runs) and Node.js 20+ / npm. From this folder:
 
 ```bash
 bash app/testme.sh
 ```
 
-Open **http://127.0.0.1:8000/**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. Public deployment is pending; this is the local working version.
+Open **http://127.0.0.1:8000/**. This command installs runtime dependencies in `.venv`, builds React in API mode and starts FastAPI serving both the website and statistics API. First run requires network access. Ctrl-C stops the service. API docs: http://127.0.0.1:8000/docs. The same app is deployed publicly at https://connect.systems-apps.com/response-watch/.
 
 - [Application setup, inputs, endpoints, parameters, tests and deployment](app/README.md)
 - [Supervisor demo for all three datasets](demo/README.md)

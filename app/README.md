@@ -4,7 +4,7 @@ For an on-duty 911 dispatch supervisor investigating late ambulance responses. R
 
 ## Start
 
-Requires Python 3.13 and Node.js 20+ with npm. From the repository root:
+Requires Python 3.12 (the version the course Connect server runs) and Node.js 20+ with npm. From the repository root:
 
 ```bash
 bash app/testme.sh
@@ -45,8 +45,10 @@ bash app/verifyme.sh
 
 Installs pinned test tooling, builds the UI, runs all statistics/API tests and frontend tests. API tests cover three scenarios, all zones, every supported window/smoothing option, exact agreement with QC results, upload isolation, bad inputs, timezone/DST shifts and dataset expiry. Follow [demo walkthrough](../demo/README.md) for a supervisor presentation.
 
-## Deployment preparation (not deployed)
+## Deployment
 
 `bash app/manifestme.sh` builds the production UI and writes an ASGI Posit Connect manifest locally. The bundle contains `api.py`, unchanged `qc.py`, pinned dependencies, exact scenario CSV copies and built frontend assets. Tests check the CSV copies match `data/`; update both copies when A changes data. The committed `frontend/dist` is a release snapshot used by manifest-based CI; never hand-edit it. After source changes, rebuild, regenerate the manifest and commit both. Relative API base `api` and Vite base `./` support Connect subpaths.
 
-When credentials become available, put `CONNECT_SERVER` and `CONNECT_API_KEY` in ignored `app/.env`, then run `bash app/deployme.sh`. Never commit `.env`. The prepared GitHub workflow publishes on main (or manual dispatch) using repository secrets and checks health. Public deployment and logged-out URL acceptance are still pending; configure a single application process because uploads currently live in memory. No server URL or key is included in this repository.
+**Live at https://connect.systems-apps.com/response-watch/** (public, no login). Every merge to `main` that touches `*.py`, `requirements.txt`, `manifest.json`, `.python-version` or the workflow redeploys to the same address through `.github/workflows/deploy-fastapi.yml`, using the `CONNECT_SERVER` and `CONNECT_API_KEY` repository secrets; the workflow fails unless `/health` answers 200. Regenerate `manifest.json` only on a laptop with Python 3.12 (e.g. `uv venv --python 3.12 .venv`), because the server offers only 3.12.4.
+
+To deploy by hand instead, put `CONNECT_SERVER` and `CONNECT_API_KEY` in ignored `app/.env`, then run `bash app/deployme.sh`. Never commit `.env`. The prepared GitHub workflow publishes on main (or manual dispatch) using repository secrets and checks health. Configure a single application process because uploads currently live in memory. No server URL or key is included in this repository.
